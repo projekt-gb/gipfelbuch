@@ -1,128 +1,57 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digitales Gipfelbuch</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f4f7f6;
-            color: #333;
-        }
-        h1 { text-align: center; color: #2c3e50; }
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        label { display: block; margin-top: 10px; font-weight: bold; }
-        input, textarea, button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        button {
-            background-color: #27ae60;
-            color: white;
-            border: none;
-            font-weight: bold;
-            margin-top: 15px;
-            cursor: pointer;
-        }
-        button:hover { background-color: #219150; }
-        .eintrag { border-bottom: 1px solid #eee; padding: 10px 0; }
-        .eintrag-header { font-weight: bold; color: #2c3e50; }
-        .eintrag-datum { font-size: 0.8em; color: #7f8c8d; }
-    </style>
-</head>
-<body>
+const express = require('express');
+const Database = require('better-sqlite3');
+const path = require('path');
 
-    <h1>🏔️ Gipfelbuch am Gedrechter</h1>
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-    <div class="card">
-        <h2>Ins Gipfelbuch eintragen</h2>
-        <form id="gipfelForm">
-            <label for="name">Dein Name / Team:</label>
-            <input type="text" id="name" name="name" placeholder="z. B. Anna & Lukas" required>
+// Middleware
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
-            <label for="nachricht">Deine Nachricht:</label>
-            <textarea id="nachricht" name="nachricht" rows="4" placeholder="Wetter, Aussicht, Tour..."></textarea>
+// SQLite-Datenbank initialisieren
+const dbPath = path.join(__dirname, 'gipfelbuch.db');
+const db = new Database(dbPath);
 
-            <button type="submit">Eintrag speichern</button>
-        </form>
-    </div>
+// Tabelle erstellen (falls noch nicht vorhanden)
+db.exec(`CREATE TABLE IF NOT EXISTS eintraege (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    nachricht TEXT,
+    datum DATETIME DEFAULT CURRENT_TIMESTAMP
+)`);
 
-    <div class="card">
-        <h2>Bisherige Einträge</h2>
-        <div id="eintraegeListe">Lade Einträge...</div>
-    </div>
+// Route 1: Alle Einträge abrufen
+app.get('/api/eintraege', (req, res) => {
+    try {
+        const stmt = db.prepare('SELECT * FROM eintraege ORDER BY datum DESC');
+        const rows = stmt.all();
+        res.json(rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
-    <script>
-        // 1. Einträge vom Server abrufen
-        async function ladeEintraege() {
-            try {
-                const response = await fetch('/api/eintraege');
-                const eintraege = await response.json();
-                const liste = document.getElementById('eintraegeListe');
-                
-                if (eintraege.length === 0) {
-                    liste.innerHTML = '<p>Noch keine Einträge vorhanden. Sei der Erste!</p>';
-                    return;
-                }
+// Route 2: Neuen Eintrag erstellen
+app.post('/api/eintraege', (req, res) => {
+    const { name, nachricht } = req.body;
+    if (!name) return res.status(400).json({ error: 'Name ist erforderlich.' });
 
-                liste.innerHTML = eintraege.map(e => `
-                    <div class="eintrag">
-                        <div class="eintrag-header">${escapeHtml(e.name)}</div>
-                        <div class="eintrag-datum">${new Date(e.datum).toLocaleString('de-DE')}</div>
-                        <p>${escapeHtml(e.nachricht || '')}</p>
-                    </div>
-                `).join('');
-            } catch (err) {
-                document.getElementById('eintraegeListe').innerText = 'Fehler beim Laden der Einträge.';
-            }
-        }
+    try {
+        const stmt = db.prepare('INSERT INTO eintraege (name, nachricht) VALUES (?, ?)');
+        const info = stmt.run(name, nachricht);
+        res.json({ message: 'Gespeichert', id: info.lastInsertRowid });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
-        // 2. Neuen Eintrag per Formular absenden
-        document.getElementById('gipfelForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = document.getElementById('name').value;
-            const nachricht = document.getElementById('nachricht').value;
+// Hauptseite ausliefern
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
-            try {
-                const res = await fetch('/api/eintraege', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, nachricht })
-                });
-
-                if (res.ok) {
-                    document.getElementById('name').value = '';
-                    document.getElementById('nachricht').value = '';
-                    ladeEintraege();
-                } else {
-                    alert('Fehler beim Speichern des Eintrags.');
-                }
-            } catch (err) {
-                alert('Netzwerkfehler beim Speichern.');
-            }
-        });
-
-        // Hilfsfunktion zur Vermeidung von XSS-Sicherheitslücken
-        function escapeHtml(str) {
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-        }
-
-        // Initiales Laden beim Seitenaufruf
-        ladeEintraege();
-    </script>
-</body>
-</html>
+app.listen(PORT, () => {
+    console.log(`Gipfelbuch-Server laeuft erfolgreich auf Port ${PORT}`);
+});
