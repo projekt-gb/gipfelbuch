@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - Gipfelbuch Moderation</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; padding: 20px; background: #f4f7f6; }
+        .card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn-ok { background: #27ae60; color: white; border: none; padding: 8px 12px; cursor: pointer; border-radius: 4px; }
+        .btn-del { background: #e74c3c; color: white; border: none; padding: 8px 12px; cursor: pointer; border-radius: 4px; margin-left: 5px; }
+        .badge { display: inline-block; padding: 3px 7px; font-size: 0.8em; border-radius: 3px; }
+        .badge-pending { background: #f39c12; color: white; }
+        .badge-approved { background: #27ae60; color: white; }
+    </style>
+</head>
+<body>
+    <h1>🔐 Gipfelbuch Administration</h1>
+    
+    <div class="card">
+        <label>Passwort eingeben:</label>
+        <input type="password" id="pw" placeholder="Admin-Passwort">
+        <button onclick="ladeAdminEintraege()">Anmelden & Laden</button>
+    </div>
+
+    <div id="liste"></div>
+
+    <script>
+        async function ladeAdminEintraege() {
+            const password = document.getElementById('pw').value;
+            const res = await fetch('/api/admin/eintraege', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password })
+            });
+
+            if (!res.ok) return alert('Zugriff verweigert! Falsches Passwort.');
+            
+            const eintraege = await res.json();
+            const liste = document.getElementById('liste');
+            
+            liste.innerHTML = eintraege.map(e => `
+                <div class="card">
+                    <span class="badge ${e.freigegeben ? 'badge-approved' : 'badge-pending'}">
+                        ${e.freigegeben ? 'Öffentlich' : 'Ausstehend'}
+                    </span>
+                    <h3>${e.name}</h3>
+                    <p>${e.nachricht || ''}</p>
+                    <small>${new Date(e.datum).toLocaleString('de-DE')}</small><br><br>
+                    ${!e.freigegeben ? `<button class="btn-ok" onclick="freischalten('${e._id}')">Freigeben</button>` : ''}
+                    <button class="btn-del" onclick="loeschen('${e._id}')">Löschen</button>
+                </div>
+            `).join('');
+        }
+
+        async function freischalten(id) {
+            const password = document.getElementById('pw').value;
+            await fetch('/api/admin/freischalten', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password, id })
+            });
+            ladeAdminEintraege();
+        }
+
+        async function loeschen(id) {
+            if (!confirm('Wirklich löschen?')) return;
+            const password = document.getElementById('pw').value;
+            await fetch('/api/admin/loeschen', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password, id })
+            });
+            ladeAdminEintraege();
+        }
+    </script>
+</body>
+</html>
