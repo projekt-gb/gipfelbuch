@@ -159,28 +159,30 @@
             document.getElementById('captchaInput').value = '';
         }
 
-        async function ladeEintraege() {
-            try {
-                const res = await fetch('/api/eintraege');
-                const eintraege = await res.json();
-                const liste = document.getElementById('eintraegeListe');
-                
-                if (eintraege.length === 0) {
-                    liste.innerHTML = '<p>Noch keine Einträge vorhanden. Sei der Erste!</p>';
-                    return;
-                }
-
-                liste.innerHTML = eintraege.map(e => `
-                    <div class="eintrag">
-                        <div class="eintrag-header">${escapeHtml(e.name)}</div>
-                        <div class="eintrag-datum">${new Date(e.datum).toLocaleString('de-DE')}</div>
-                        <p>${escapeHtml(e.nachricht || '')}</p>
-                    </div>
-                `).join('');
-            } catch (err) {
-                document.getElementById('eintraegeListe').innerText = 'Fehler beim Laden der Einträge.';
-            }
+       async function ladeEintraege() {
+    try {
+        const res = await fetch('/api/eintraege');
+        const eintraege = await res.json();
+        const liste = document.getElementById('eintraegeListe');
+        
+        // Prüfen, ob überhaupt freigegebene Einträge existieren
+        if (!Array.isArray(eintraege) || eintraege.length === 0) {
+            liste.innerHTML = '<p>Noch keine Einträge vorhanden. Sei der Erste!</p>';
+            return;
         }
+
+        // Iteriert über ALLE Elemente des Arrays und generiert HTML für jeden Eintrag
+        liste.innerHTML = eintraege.map(e => `
+            <div class="eintrag">
+                <div class="eintrag-header">${escapeHtml(e.name)}</div>
+                <div class="eintrag-datum">${new Date(e.datum).toLocaleString('de-DE')}</div>
+                <p>${escapeHtml(e.nachricht || '')}</p>
+            </div>
+        `).join('');
+    } catch (err) {
+        document.getElementById('eintraegeListe').innerText = 'Fehler beim Laden der Einträge.';
+    }
+}
 
         document.getElementById('gipfelForm').addEventListener('submit', async (e) => {
             e.preventDefault();
