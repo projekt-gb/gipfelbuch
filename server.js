@@ -15,51 +15,56 @@ const db = Datastore.create({
     autoload: true
 });
 
-// Route: Abruf ALLER freigeschalteten Einträge
+// Öffentliche Route: Alle freigeschalteten Einträge abrufen
 app.get('/api/eintraege', async (req, res) => {
     try {
-        // Sucht ALLE Einträge, deren Status freigegeben ist (boolean true oder string "true")
         const eintraege = await db.find({ 
             $or: [
                 { freigegeben: true },
                 { freigegeben: "true" }
             ] 
-        }).sort({ datum: -1 }); // Sortierung: Neuester Eintrag zuerst
-
+        }).sort({ datum: -1 });
         res.json(eintraege);
     } catch (err) {
-        console.error("Fehler beim Abrufen aller Einträge:", err);
+        console.error("Fehler beim Abrufen der Einträge:", err);
         res.status(500).json({ error: "Fehler beim Laden der Einträge." });
     }
 });
 
+// Öffentliche Route: Neuen Eintrag mit Gipfel-Code-Prüfung anlegen
 app.post('/api/eintraege', async (req, res) => {
     try {
-        const { name, nachricht, captchaAnswer, captchaExpected } = req.body;
+        const { name, nachricht, summitCode, captchaAnswer, captchaExpected } = req.body;
 
         if (!name || name.trim() === '') {
             return res.status(400).json({ error: 'Bitte gib deinen Namen ein.' });
         }
 
+        // 1. Prüfung des Gipfel-Codes (1961)
+        if (parseInt(summitCode, 10) !== 1961) {
+            return res.status(400).json({ error: 'Falscher Gipfel-Code! Die richtige Zahl steht auf dem Zettel am Gipfelkreuz.' });
+        }
+
+        // 2. Prüfung des Mathe-Captchas
         const eingabe = parseInt(captchaAnswer, 10);
         const sollWert = parseInt(captchaExpected, 10);
 
         if (isNaN(eingabe) || eingabe !== sollWert) {
-            return res.status(400).json({ error: 'Sicherheitsfrage nicht korrekt gelöst.' });
+            return res.status(400).json({ error: 'Sicherheitsfrage (Rechnung) nicht korrekt gelöst.' });
         }
 
         const neuerEintrag = await db.insert({
             name: name.trim(),
             nachricht: nachricht ? nachricht.trim() : '',
             datum: new Date().toISOString(),
-            freigegeben: false
+            freigegeben: false // WSV-Moderation
         });
 
         res.json({ success: true, message: 'Eintrag erfolgreich eingereicht!' });
 
     } catch (err) {
         console.error("Datenbankfehler:", err);
-        res.status(500).json({ error: 'Serverfehler: ' + err.message });
+        res.status(500).json({ error: 'Serverfehler beim Speichern: ' + err.message });
     }
 });
 
