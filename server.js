@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digitales Gipfelbuch</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        h1 { text-align: center; color: #2c3e50; }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        input, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            font-weight: bold;
+            margin-top: 15px;
+            cursor: pointer;
+        }
+        button:hover { background-color: #219150; }
+        .eintrag { border-bottom: 1px solid #eee; padding: 10px 0; }
+        .eintrag-header { font-weight: bold; color: #2c3e50; }
+        .eintrag-datum { font-size: 0.8em; color: #7f8c8d; }
+    </style>
+</head>
+<body>
+
+    <h1>🏔️ Gipfelbuch am Gedrechter</h1>
+
+    <div class="card">
+        <h2>Ins Gipfelbuch eintragen</h2>
+        <form id="gipfelForm">
+            <label for="name">Dein Name / Team:</label>
+            <input type="text" id="name" name="name" placeholder="z. B. Anna & Lukas" required>
+
+            <label for="nachricht">Deine Nachricht:</label>
+            <textarea id="nachricht" name="nachricht" rows="4" placeholder="Wetter, Aussicht, Tour..."></textarea>
+
+            <button type="submit">Eintrag speichern</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>Bisherige Einträge</h2>
+        <div id="eintraegeListe">Lade Einträge...</div>
+    </div>
+
+    <script>
+        // 1. Einträge vom Server abrufen
+        async function ladeEintraege() {
+            try {
+                const response = await fetch('/api/eintraege');
+                const eintraege = await response.json();
+                const liste = document.getElementById('eintraegeListe');
+                
+                if (eintraege.length === 0) {
+                    liste.innerHTML = '<p>Noch keine Einträge vorhanden. Sei der Erste!</p>';
+                    return;
+                }
+
+                liste.innerHTML = eintraege.map(e => `
+                    <div class="eintrag">
+                        <div class="eintrag-header">${escapeHtml(e.name)}</div>
+                        <div class="eintrag-datum">${new Date(e.datum).toLocaleString('de-DE')}</div>
+                        <p>${escapeHtml(e.nachricht || '')}</p>
+                    </div>
+                `).join('');
+            } catch (err) {
+                document.getElementById('eintraegeListe').innerText = 'Fehler beim Laden der Einträge.';
+            }
+        }
+
+        // 2. Neuen Eintrag per Formular absenden
+        document.getElementById('gipfelForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const nachricht = document.getElementById('nachricht').value;
+
+            try {
+                const res = await fetch('/api/eintraege', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, nachricht })
+                });
+
+                if (res.ok) {
+                    document.getElementById('name').value = '';
+                    document.getElementById('nachricht').value = '';
+                    ladeEintraege();
+                } else {
+                    alert('Fehler beim Speichern des Eintrags.');
+                }
+            } catch (err) {
+                alert('Netzwerkfehler beim Speichern.');
+            }
+        });
+
+        // Hilfsfunktion zur Vermeidung von XSS-Sicherheitslücken
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        // Initiales Laden beim Seitenaufruf
+        ladeEintraege();
+    </script>
+</body>
+</html>
