@@ -47,7 +47,6 @@
             border: 1px dashed #7f8c8d;
         }
         
-        /* Standard-Button-Styling */
         button { 
             background-color: #27ae60; 
             color: white; 
@@ -59,14 +58,12 @@
         }
         button:hover { background-color: #219150; }
 
-        /* Farbänderung bei Deaktivierung / Absendevorgang */
         button:disabled, button.btn-disabled {
             background-color: #bdc3c7 !important;
             color: #7f8c8d;
             cursor: not-allowed;
         }
 
-        /* Statusmeldung direkt unter dem Formular */
         .status-message {
             margin-top: 15px;
             padding: 12px;
@@ -99,7 +96,7 @@
         <h2>Ins Gipfelbuch eintragen</h2>
         
         <div class="info-box">
-            ℹ️ <strong>Hinweis:</strong> Jeder Eintrag wird vom WSV geprüft und anschließend freigeschaltet.
+            ℹ️ <strong>Hinweis:</strong> Jeder Eintrag wird vom Wintersportverein Kaltenbach-Ried geprüft und anschließend freigeschaltet.
         </div>
 
         <form id="gipfelForm">
@@ -116,7 +113,6 @@
 
             <button type="submit" id="submitBtn">Eintrag speichern</button>
             
-            <!-- Feld für die Rückmeldung -->
             <div id="statusBox" class="status-message"></div>
         </form>
     </div>
@@ -170,12 +166,11 @@
             const captchaAnswer = document.getElementById('captchaInput').value;
             const expectedSum = num1 + num2;
 
-            // 1. Button sofort sperren und optisch verändern (grau schalten)
+            // Button sofort deaktivieren und visuell grau färben
             submitBtn.disabled = true;
             submitBtn.classList.add('btn-disabled');
             submitBtn.innerText = 'Wird gesendet...';
             
-            // Statusbox zurücksetzen
             statusBox.style.display = 'none';
             statusBox.className = 'status-message';
 
@@ -184,21 +179,19 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        name, 
-                        nachricht, 
-                        captchaAnswer, 
-                        captchaExpected: expectedSum 
+                        name: name, 
+                        nachricht: nachricht, 
+                        captchaAnswer: parseInt(captchaAnswer, 10), 
+                        captchaExpected: parseInt(expectedSum, 10) 
                     })
                 });
 
                 const data = await res.json();
 
                 if (res.ok && data.success) {
-                    // Formular leeren
                     document.getElementById('name').value = '';
                     document.getElementById('nachricht').value = '';
                     
-                    // Erfolgsmeldung anzeigen
                     statusBox.innerText = '✅ Vielen Dank! Dein Eintrag wurde abgesendet, wird vom WSV geprüft und anschließend freigeschaltet.';
                     statusBox.classList.add('status-success');
                     statusBox.style.display = 'block';
@@ -206,7 +199,7 @@
                     erstelleCaptcha();
                     ladeEintraege();
                 } else {
-                    // Fehlermeldung anzeigen
+                    // Detaillierte Server-Fehlermeldung anzeigen
                     statusBox.innerText = '❌ Fehler: ' + (data.error || 'Eintrag konnte nicht gespeichert werden.');
                     statusBox.classList.add('status-error');
                     statusBox.style.display = 'block';
@@ -214,16 +207,16 @@
                     erstelleCaptcha();
                 }
             } catch (err) {
-                statusBox.innerText = '❌ Netzwerkfehler beim Speichern. Bitte später erneut versuchen.';
+                statusBox.innerText = '❌ Netzwerkfehler beim Speichern. Bitte versuche es später erneut.';
                 statusBox.classList.add('status-error');
                 statusBox.style.display = 'block';
             } finally {
-                // 2. Button nach 3 Sekunden wieder freischalten (verhindert Spam & gibt Zeit zum Lesen)
+                // Button nach 3 Sekunden wieder aktivieren
                 setTimeout(() => {
                     submitBtn.disabled = false;
                     submitBtn.classList.remove('btn-disabled');
                     submitBtn.innerText = 'Eintrag speichern';
-                }, 6000);
+                }, 3000);
             }
         });
 
