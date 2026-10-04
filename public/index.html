@@ -39,9 +39,9 @@
             border-radius: 4px; 
             box-sizing: border-box; 
         }
-        .captcha-box {
+        .security-box {
             background: #eef2f5;
-            padding: 10px;
+            padding: 12px;
             border-radius: 4px;
             margin-top: 15px;
             border: 1px dashed #7f8c8d;
@@ -58,7 +58,6 @@
         }
         button:hover { background-color: #219150; }
 
-        /* Farbänderung bei deaktiviertem Button */
         button:disabled, button.btn-disabled {
             background-color: #bdc3c7 !important;
             color: #7f8c8d;
@@ -84,7 +83,6 @@
             border: 1px solid #f5c6cb;
         }
 
-        /* Persönliche Vorschau-Karte */
         .preview-card {
             background: #fdfefe;
             border: 2px solid #27ae60;
@@ -112,7 +110,6 @@
     <div class="card">
         <h2>Mein Eintrag ins Gipfelbuch</h2>
         
-        <!-- Angepasster Hinweistext -->
         <div class="info-box">
             ℹ️ <strong>Hinweis:</strong> Jeder Eintrag wird vom Wintersportverein Kaltenbach-Ried geprüft und anschließend freigeschaltet. Datum und Uhrzeit wird vollautomatisch ergänzt.
         </div>
@@ -124,8 +121,11 @@
             <label for="nachricht">Deine Nachricht:</label>
             <textarea id="nachricht" name="nachricht" rows="4"></textarea>
 
-            <div class="captcha-box">
-                <label id="captchaLabel" for="captchaInput">Sicherheitsfrage:</label>
+            <div class="security-box">
+                <label for="summitCode">Wann wurde das Kreuz erstmals errichtet? Die Antwort findest du am Kreuz! </label>
+                <input type="number" id="summitCode" placeholder="Jahreszahl eingeben" required>
+
+                <label id="captchaLabel" for="captchaInput" style="margin-top: 12px;">Sicherheitsfrage:</label>
                 <input type="number" id="captchaInput" placeholder="Antwort eingeben" required>
             </div>
 
@@ -133,7 +133,6 @@
             
             <div id="statusBox" class="status-message"></div>
 
-            <!-- Vorschau des eigenen Eintrags -->
             <div id="meinEintragBox" class="preview-card">
                 <div class="preview-title">📌 Mein Gipfelbucheintrag:</div>
                 <div class="eintrag-header" id="previewName"></div>
@@ -157,32 +156,31 @@
             num2 = Math.floor(Math.random() * 9) + 1;
             document.getElementById('captchaLabel').innerText = `Sicherheitsfrage: Was ist ${num1} + ${num2}?`;
             document.getElementById('captchaInput').value = '';
+            document.getElementById('summitCode').value = '';
         }
 
-       async function ladeEintraege() {
-    try {
-        const res = await fetch('/api/eintraege');
-        const eintraege = await res.json();
-        const liste = document.getElementById('eintraegeListe');
-        
-        // Prüfen, ob überhaupt freigegebene Einträge existieren
-        if (!Array.isArray(eintraege) || eintraege.length === 0) {
-            liste.innerHTML = '<p>Noch keine Einträge vorhanden. Sei der Erste!</p>';
-            return;
-        }
+        async function ladeEintraege() {
+            try {
+                const res = await fetch('/api/eintraege');
+                const eintraege = await res.json();
+                const liste = document.getElementById('eintraegeListe');
+                
+                if (!Array.isArray(eintraege) || eintraege.length === 0) {
+                    liste.innerHTML = '<p>Noch keine Einträge vorhanden. Sei der Erste!</p>';
+                    return;
+                }
 
-        // Iteriert über ALLE Elemente des Arrays und generiert HTML für jeden Eintrag
-        liste.innerHTML = eintraege.map(e => `
-            <div class="eintrag">
-                <div class="eintrag-header">${escapeHtml(e.name)}</div>
-                <div class="eintrag-datum">${new Date(e.datum).toLocaleString('de-DE')}</div>
-                <p>${escapeHtml(e.nachricht || '')}</p>
-            </div>
-        `).join('');
-    } catch (err) {
-        document.getElementById('eintraegeListe').innerText = 'Fehler beim Laden der Einträge.';
-    }
-}
+                liste.innerHTML = eintraege.map(e => `
+                    <div class="eintrag">
+                        <div class="eintrag-header">${escapeHtml(e.name)}</div>
+                        <div class="eintrag-datum">${new Date(e.datum).toLocaleString('de-DE')}</div>
+                        <p>${escapeHtml(e.nachricht || '')}</p>
+                    </div>
+                `).join('');
+            } catch (err) {
+                document.getElementById('eintraegeListe').innerText = 'Fehler beim Laden der Einträge.';
+            }
+        }
 
         document.getElementById('gipfelForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -193,10 +191,10 @@
             
             const name = document.getElementById('name').value;
             const nachricht = document.getElementById('nachricht').value;
+            const summitCode = document.getElementById('summitCode').value;
             const captchaAnswer = document.getElementById('captchaInput').value;
             const expectedSum = num1 + num2;
 
-            // 1. Button sperren und grau schalten
             submitBtn.disabled = true;
             submitBtn.classList.add('btn-disabled');
             submitBtn.innerText = 'Wird gesendet...';
@@ -212,6 +210,7 @@
                     body: JSON.stringify({ 
                         name: name, 
                         nachricht: nachricht, 
+                        summitCode: parseInt(summitCode, 10),
                         captchaAnswer: parseInt(captchaAnswer, 10), 
                         captchaExpected: parseInt(expectedSum, 10) 
                     })
@@ -220,18 +219,15 @@
                 const data = await res.json();
 
                 if (res.ok && data.success) {
-                    // Vorschau befüllen
                     document.getElementById('previewName').innerText = name;
                     document.getElementById('previewDatum').innerText = new Date().toLocaleString('de-DE');
                     document.getElementById('previewText').innerText = nachricht || '(Keine Nachricht eingegeben)';
                     
                     meinEintragBox.style.display = 'block';
 
-                    // Felder zurücksetzen
                     document.getElementById('name').value = '';
                     document.getElementById('nachricht').value = '';
                     
-                    // Angepasste Erfolgsmeldung
                     statusBox.innerText = '✅ Vielen Dank! Dein Eintrag wurde abgesendet, wird vom Wintersportverein geprüft und anschließend freigeschaltet.';
                     statusBox.classList.add('status-success');
                     statusBox.style.display = 'block';
@@ -250,7 +246,6 @@
                 statusBox.classList.add('status-error');
                 statusBox.style.display = 'block';
             } finally {
-                // 2. EXAKT 6 SECONDS SPERRE (6000 Millisekunden)
                 setTimeout(() => {
                     submitBtn.disabled = false;
                     submitBtn.classList.remove('btn-disabled');
