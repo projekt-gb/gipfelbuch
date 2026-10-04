@@ -2,123 +2,162 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Gipfelbuch Moderation</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; padding: 20px; background: #f4f7f6; }
-        .card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .btn-ok { background: #27ae60; color: white; border: none; padding: 8px 12px; cursor: pointer; border-radius: 4px; }
-        .btn-del { background: #e74c3c; color: white; border: none; padding: 8px 12px; cursor: pointer; border-radius: 4px; margin-left: 5px; }
-        .badge { display: inline-block; padding: 3px 7px; font-size: 0.8em; border-radius: 3px; }
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 700px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background: #f4f7f6; 
+            color: #333; 
+        }
+        h1 { text-align: center; color: #2c3e50; }
+        .card { 
+            background: white; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-bottom: 15px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+        }
+        label { font-weight: bold; display: block; margin-bottom: 5px; }
+        input[type="password"] { 
+            width: 100%; 
+            padding: 10px; 
+            margin-bottom: 10px; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+            box-sizing: border-box; 
+        }
+        button { 
+            padding: 10px 15px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-weight: bold; 
+        }
+        .btn-main { background: #2980b9; color: white; width: 100%; }
+        .btn-ok { background: #27ae60; color: white; }
+        .btn-del { background: #e74c3c; color: white; margin-left: 5px; }
+        .badge { display: inline-block; padding: 4px 8px; font-size: 0.8em; border-radius: 4px; font-weight: bold; }
         .badge-pending { background: #f39c12; color: white; }
         .badge-approved { background: #27ae60; color: white; }
     </style>
 </head>
 <body>
+
     <h1>🔐 Gipfelbuch Administration</h1>
     
     <div class="card">
-        <label>Passwort eingeben:</label>
-        <input type="password" id="pw" placeholder="Admin-Passwort">
-        <button onclick="ladeAdminEintraege()">Anmelden & Laden</button>
+        <label for="pw">Admin-Passwort:</label>
+        <input type="password" id="pw" placeholder="Passwort eingeben...">
+        <button class="btn-main" id="loginBtn">Anmelden & Laden</button>
     </div>
 
     <div id="liste"></div>
 
     <script>
-       async function ladeAdminEintraege() {
-    const password = document.getElementById('pw').value.trim();
-    
-    if (!password) {
-        alert('Bitte gib das Admin-Passwort ein.');
-        return;
-    }
+        // Event-Listener hinzufügen, um sicherzustellen, dass der Klick immer registriert wird
+        document.getElementById('loginBtn').addEventListener('click', ladeAdminEintraege);
 
-    try {
-        const res = await fetch('/api/admin/eintraege', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password })
-        });
-
-        if (res.status === 401) {
-            alert('Falsches Passwort! Bitte überprüfe die Eingabe (Standard: geheim123).');
-            return;
-        }
-
-        if (!res.ok) {
-            alert('Server-Fehler (' + res.status + '). Der Server startet eventuell noch neu.');
-            return;
-        }
-
-        const eintraege = await res.json();
-        const liste = document.getElementById('liste');
-
-        if (eintraege.length === 0) {
-            liste.innerHTML = '<div class="card"><p>Keine Einträge vorhanden.</p></div>';
-            return;
-        }
-
-        liste.innerHTML = eintraege.map(e => `
-            <div class="card">
-                <span class="badge ${e.freigegeben ? 'badge-approved' : 'badge-pending'}">
-                    ${e.freigegeben ? 'Öffentlich' : 'Ausstehend'}
-                </span>
-                <h3>${escapeHtml(e.name)}</h3>
-                <p>${escapeHtml(e.nachricht || '')}</p>
-                <small>${new Date(e.datum).toLocaleString('de-DE')}</small><br><br>
-                ${!e.freigegeben ? `<button class="btn-ok" onclick="freischalten('${e._id}')">Freigeben</button>` : ''}
-                <button class="btn-del" onclick="loeschen('${e._id}')">Löschen</button>
-            </div>
-        `).join('');
-
-    } catch (err) {
-        alert('Netzwerkfehler: Der Server ist aktuell nicht erreichbar. Bitte warte 30 Sekunden.');
-    }
-}
-
-// Hilfsfunktion zur Sicherheit
-function escapeHtml(str) {
-    return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
-
-            if (!res.ok) return alert('Zugriff verweigert! Falsches Passwort.');
-            
-            const eintraege = await res.json();
+        async function ladeAdminEintraege() {
+            const pwInput = document.getElementById('pw');
+            const password = pwInput.value.trim();
             const liste = document.getElementById('liste');
-            
-            liste.innerHTML = eintraege.map(e => `
-                <div class="card">
-                    <span class="badge ${e.freigegeben ? 'badge-approved' : 'badge-pending'}">
-                        ${e.freigegeben ? 'Öffentlich' : 'Ausstehend'}
-                    </span>
-                    <h3>${e.name}</h3>
-                    <p>${e.nachricht || ''}</p>
-                    <small>${new Date(e.datum).toLocaleString('de-DE')}</small><br><br>
-                    ${!e.freigegeben ? `<button class="btn-ok" onclick="freischalten('${e._id}')">Freigeben</button>` : ''}
-                    <button class="btn-del" onclick="loeschen('${e._id}')">Löschen</button>
-                </div>
-            `).join('');
+
+            if (!password) {
+                alert('Bitte gib zuerst das Admin-Passwort ein.');
+                return;
+            }
+
+            liste.innerHTML = '<div class="card"><p>Lade Daten vom Server...</p></div>';
+
+            try {
+                const res = await fetch('/api/admin/eintraege', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+
+                if (res.status === 401) {
+                    alert('Falsches Passwort! (Standard: geheim123)');
+                    liste.innerHTML = '';
+                    return;
+                }
+
+                if (!res.ok) {
+                    alert('Server-Fehler: Status ' + res.status);
+                    liste.innerHTML = '';
+                    return;
+                }
+
+                const eintraege = await res.json();
+
+                if (eintraege.length === 0) {
+                    liste.innerHTML = '<div class="card"><p>Keine Einträge in der Datenbank vorhanden.</p></div>';
+                    return;
+                }
+
+                liste.innerHTML = eintraege.map(e => `
+                    <div class="card">
+                        <span class="badge ${e.freigegeben ? 'badge-approved' : 'badge-pending'}">
+                            ${e.freigegeben ? 'Öffentlich' : 'Ausstehend'}
+                        </span>
+                        <h3>${escapeHtml(e.name)}</h3>
+                        <p>${escapeHtml(e.nachricht || '')}</p>
+                        <small>${new Date(e.datum).toLocaleString('de-DE')}</small><br><br>
+                        ${!e.freigegeben ? `<button class="btn-ok" onclick="freischalten('${e._id}')">Freigeben</button>` : ''}
+                        <button class="btn-del" onclick="loeschen('${e._id}')">Löschen</button>
+                    </div>
+                `).join('');
+
+            } catch (err) {
+                alert('Netzwerkfehler: Der Server reagiert nicht. Bitte warte kurz, falls Render aufwacht.');
+                liste.innerHTML = '';
+            }
         }
 
         async function freischalten(id) {
-            const password = document.getElementById('pw').value;
-            await fetch('/api/admin/freischalten', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password, id })
-            });
-            ladeAdminEintraege();
+            const password = document.getElementById('pw').value.trim();
+            try {
+                const res = await fetch('/api/admin/freischalten', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password, id })
+                });
+                if (res.ok) {
+                    ladeAdminEintraege();
+                } else {
+                    alert('Fehler beim Freischalten.');
+                }
+            } catch (err) {
+                alert('Netzwerkfehler.');
+            }
         }
 
         async function loeschen(id) {
-            if (!confirm('Wirklich löschen?')) return;
-            const password = document.getElementById('pw').value;
-            await fetch('/api/admin/loeschen', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password, id })
-            });
-            ladeAdminEintraege();
+            if (!confirm('Möchtest du diesen Eintrag wirklich dauerhaft löschen?')) return;
+            const password = document.getElementById('pw').value.trim();
+            try {
+                const res = await fetch('/api/admin/loeschen', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password, id })
+                });
+                if (res.ok) {
+                    ladeAdminEintraege();
+                } else {
+                    alert('Fehler beim Löschen.');
+                }
+            } catch (err) {
+                alert('Netzwerkfehler.');
+            }
+        }
+
+        // Hilfsfunktion gegen Skript-Einspeisung (XSS)
+        function escapeHtml(str) {
+            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
         }
     </script>
 </body>
