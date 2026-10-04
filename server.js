@@ -1,57 +1,59 @@
 const express = require('express');
-const Database = require('better-sqlite3');
+const Datastore = require('nedb-promises');
 const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
+// Express Middleware für Formular- und JSON-Daten
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+// Statisches Frontend aus dem Ordner "public" ausliefern
 app.use(express.static(path.join(__dirname, 'public')));
 
-// SQLite-Datenbank initialisieren
-const dbPath = path.join(__dirname, 'gipfelbuch.db');
-const db = new Database(dbPath);
+// NeDB-Datenbankdatei initialisieren (speichert automatisch in gipfelbuch.db)
+const db = Datastore.create({
+    filename: path.join(__dirname, 'gipfelbuch.db'),
+    autoload: true
+});
 
-// Tabelle erstellen (falls noch nicht vorhanden)
-db.exec(`CREATE TABLE IF NOT EXISTS eintraege (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    nachricht TEXT,
-    datum DATETIME DEFAULT CURRENT_TIMESTAMP
-)`);
-
-// Route 1: Alle Einträge abrufen
-app.get('/api/eintraege', (req, res) => {
+// Route 1: Alle Einträge abrufen (neueste zuerst)
+app.get('/api/eintraege', async (req, res) => {
     try {
-        const stmt = db.prepare('SELECT * FROM eintraege ORDER BY datum DESC');
-        const rows = stmt.all();
-        res.json(rows);
+        const eintraege = await db.find({}).sort({ datum: -1 });
+        res.json(eintraege);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
 // Route 2: Neuen Eintrag erstellen
-app.post('/api/eintraege', (req, res) => {
+app.post('/api/eintraege', async (req, res) => {
     const { name, nachricht } = req.body;
-    if (!name) return res.status(400).json({ error: 'Name ist erforderlich.' });
+
+    if (!name) {
+        return res.status(400).json({ error: 'Name ist erforderlich.' });
+    }
 
     try {
-        const stmt = db.prepare('INSERT INTO eintraege (name, nachricht) VALUES (?, ?)');
-        const info = stmt.run(name, nachricht);
-        res.json({ message: 'Gespeichert', id: info.lastInsertRowid });
+        const neuerEintrag = await db.insert({
+            name,
+            nachricht,
+            datum: new Date().toISOString()
+        });
+        res.json({ message: 'Eintrag erfolgreich gespeichert!', eintrag: neuerEintrag });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// Hauptseite ausliefern
+// Fallback für das Frontend
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Server starten
 app.listen(PORT, () => {
     console.log(`Gipfelbuch-Server laeuft erfolgreich auf Port ${PORT}`);
 });
