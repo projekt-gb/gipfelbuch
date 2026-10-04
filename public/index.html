@@ -93,8 +93,9 @@
     <div class="card">
         <h2>Mein Eintrag ins Gipfelbuch</h2>
         
+        <!-- Aktualisierte Info-Box mit automatischem Datums-Hinweis -->
         <div class="info-box">
-            ℹ️ <strong>Hinweis:</strong> Jeder Eintrag wird vom Wintersportverein Kaltenbach-Ried geprüft und anschließend freigeschaltet.
+            ℹ️ <strong>Hinweis:</strong> Jeder Eintrag wird vom Wintersportverein Kaltenbach-Ried geprüft und anschließend freigeschaltet. Datum und Uhrzeit werden vollautomatisch ergänzt.
         </div>
 
         <form id="gipfelForm">
@@ -164,7 +165,6 @@
             const captchaAnswer = document.getElementById('captchaInput').value;
             const expectedSum = num1 + num2;
 
-            // Button sofort deaktivieren und visuell grau färben
             submitBtn.disabled = true;
             submitBtn.classList.add('btn-disabled');
             submitBtn.innerText = 'Wird gesendet...';
@@ -190,6 +190,7 @@
                     document.getElementById('name').value = '';
                     document.getElementById('nachricht').value = '';
                     
+                    // Aktualisierte Bestätigungsmeldung
                     statusBox.innerText = '✅ Vielen Dank! Dein Eintrag wurde abgesendet, wird vom Wintersportverein geprüft und anschließend freigeschaltet.';
                     statusBox.classList.add('status-success');
                     statusBox.style.display = 'block';
@@ -197,7 +198,6 @@
                     erstelleCaptcha();
                     ladeEintraege();
                 } else {
-                    // Detaillierte Server-Fehlermeldung anzeigen
                     statusBox.innerText = '❌ Fehler: ' + (data.error || 'Eintrag konnte nicht gespeichert werden.');
                     statusBox.classList.add('status-error');
                     statusBox.style.display = 'block';
@@ -209,7 +209,6 @@
                 statusBox.classList.add('status-error');
                 statusBox.style.display = 'block';
             } finally {
-                // Button nach 3 Sekunden wieder aktivieren
                 setTimeout(() => {
                     submitBtn.disabled = false;
                     submitBtn.classList.remove('btn-disabled');
