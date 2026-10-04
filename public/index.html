@@ -58,6 +58,7 @@
         }
         button:hover { background-color: #219150; }
 
+        /* Farbänderung bei deaktiviertem Button */
         button:disabled, button.btn-disabled {
             background-color: #bdc3c7 !important;
             color: #7f8c8d;
@@ -83,6 +84,24 @@
             border: 1px solid #f5c6cb;
         }
 
+        /* Persönliche Vorschau-Karte */
+        .preview-card {
+            background: #fdfefe;
+            border: 2px solid #27ae60;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+        .preview-title {
+            color: #27ae60;
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 8px;
+            border-bottom: 1px dashed #27ae60;
+            padding-bottom: 5px;
+        }
+
         .eintrag { border-bottom: 1px solid #eee; padding: 10px 0; }
         .eintrag-header { font-weight: bold; color: #2c3e50; }
         .eintrag-datum { font-size: 0.8em; color: #7f8c8d; }
@@ -91,19 +110,19 @@
 <body>
 
     <div class="card">
-        <h2>Bucheintrag erstellen</h2>
+        <h2>Mein Eintrag ins Gipfelbuch</h2>
         
-        <!-- Aktualisierte Info-Box mit automatischem Datums-Hinweis -->
+        <!-- Angepasster Hinweistext -->
         <div class="info-box">
-            ℹ️ <strong>Hinweis:</strong> Jeder Eintrag wird vom Wintersportverein Kaltenbach-Ried geprüft und anschließend freigeschaltet. Datum und Uhrzeit werden vollautomatisch ergänzt.
+            ℹ️ <strong>Hinweis:</strong> Jeder Eintrag wird vom Wintersportverein Kaltenbach-Ried geprüft und anschließend freigeschaltet. Datum und Uhrzeit wird vollautomatisch ergänzt.
         </div>
 
         <form id="gipfelForm">
             <label for="name">Dein Name / Team:</label>
-            <input type="text" id="name" name="name" placeholder="z. B. Max Muster" required>
+            <input type="text" id="name" name="name" placeholder="z. B. Anna & Lukas" required>
 
             <label for="nachricht">Deine Nachricht:</label>
-            <textarea id="nachricht" name="nachricht" rows="4"></textarea>
+            <textarea id="nachricht" name="nachricht" rows="4" placeholder="Wetter, Aussicht, Tour..."></textarea>
 
             <div class="captcha-box">
                 <label id="captchaLabel" for="captchaInput">Sicherheitsfrage:</label>
@@ -113,6 +132,14 @@
             <button type="submit" id="submitBtn">Eintrag speichern</button>
             
             <div id="statusBox" class="status-message"></div>
+
+            <!-- Vorschau des eigenen Eintrags -->
+            <div id="meinEintragBox" class="preview-card">
+                <div class="preview-title">📌 Mein Gipfelbucheintrag:</div>
+                <div class="eintrag-header" id="previewName"></div>
+                <div class="eintrag-datum" id="previewDatum"></div>
+                <p id="previewText" style="margin-top: 8px; font-style: italic;"></p>
+            </div>
         </form>
     </div>
 
@@ -160,17 +187,21 @@
             
             const submitBtn = document.getElementById('submitBtn');
             const statusBox = document.getElementById('statusBox');
+            const meinEintragBox = document.getElementById('meinEintragBox');
+            
             const name = document.getElementById('name').value;
             const nachricht = document.getElementById('nachricht').value;
             const captchaAnswer = document.getElementById('captchaInput').value;
             const expectedSum = num1 + num2;
 
+            // 1. Button sperren und grau schalten
             submitBtn.disabled = true;
             submitBtn.classList.add('btn-disabled');
             submitBtn.innerText = 'Wird gesendet...';
             
             statusBox.style.display = 'none';
             statusBox.className = 'status-message';
+            meinEintragBox.style.display = 'none';
 
             try {
                 const res = await fetch('/api/eintraege', {
@@ -187,10 +218,18 @@
                 const data = await res.json();
 
                 if (res.ok && data.success) {
+                    // Vorschau befüllen
+                    document.getElementById('previewName').innerText = name;
+                    document.getElementById('previewDatum').innerText = new Date().toLocaleString('de-DE');
+                    document.getElementById('previewText').innerText = nachricht || '(Keine Nachricht eingegeben)';
+                    
+                    meinEintragBox.style.display = 'block';
+
+                    // Felder zurücksetzen
                     document.getElementById('name').value = '';
                     document.getElementById('nachricht').value = '';
                     
-                    // Aktualisierte Bestätigungsmeldung
+                    // Angepasste Erfolgsmeldung
                     statusBox.innerText = '✅ Vielen Dank! Dein Eintrag wurde abgesendet, wird vom Wintersportverein geprüft und anschließend freigeschaltet.';
                     statusBox.classList.add('status-success');
                     statusBox.style.display = 'block';
@@ -209,6 +248,7 @@
                 statusBox.classList.add('status-error');
                 statusBox.style.display = 'block';
             } finally {
+                // 2. EXAKT 6 SECONDS SPERRE (6000 Millisekunden)
                 setTimeout(() => {
                     submitBtn.disabled = false;
                     submitBtn.classList.remove('btn-disabled');
