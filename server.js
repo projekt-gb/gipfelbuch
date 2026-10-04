@@ -6,38 +6,44 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "geheim123";
 
-// WICHTIG: Erlaubt das Einlesen von JSON und normalen Formulardaten
+// Middleware für Formular- und JSON-Daten
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Datenbankdatei im Projektverzeichnis
+// Datenbank initialisieren
 const db = Datastore.create({
     filename: path.join(__dirname, 'gipfelbuch.db'),
     autoload: true
 });
 
-// 1. Öffentliche Route: Freigegebene Einträge abrufen
+// 1. Öffentliche Route: Alle FREIGEGEBENEN Einträge abrufen
 app.get('/api/eintraege', async (req, res) => {
     try {
-        const eintraege = await db.find({ freigegeben: true }).sort({ datum: -1 });
+        // Findet Einträge, bei denen freigegeben entweder als true (Boolean) oder als "true" (String) gespeichert ist
+        const eintraege = await db.find({ 
+            $or: [
+                { freigegeben: true },
+                { freigegeben: "true" }
+            ] 
+        }).sort({ datum: -1 });
+
         res.json(eintraege);
     } catch (err) {
-        console.error("Fehler beim Laden:", err);
+        console.error("Fehler beim Abrufen der öffentlichen Einträge:", err);
         res.status(500).json({ error: "Fehler beim Laden der Einträge." });
     }
 });
 
-// 2. Öffentliche Route: Neuen Eintrag speichern
+// 2. Öffentliche Route: Neuen Eintrag anlegen
 app.post('/api/eintraege', async (req, res) => {
     try {
         const { name, nachricht, captchaAnswer, captchaExpected } = req.body;
 
         if (!name || name.trim() === '') {
-            return res.status(400).json({ error: 'Bitte gib einen Namen ein.' });
+            return res.status(400).json({ error: 'Bitte gib deinen Namen ein.' });
         }
 
-        // Werte explizit in Zahlen umwandeln
         const eingabe = parseInt(captchaAnswer, 10);
         const sollWert = parseInt(captchaExpected, 10);
 
@@ -49,14 +55,14 @@ app.post('/api/eintraege', async (req, res) => {
             name: name.trim(),
             nachricht: nachricht ? nachricht.trim() : '',
             datum: new Date().toISOString(),
-            freigegeben: false // Muss vom WSV freigeschaltet werden
+            freigegeben: false // Garantiert als Boolean-Wert 'false'
         });
 
         res.json({ success: true, message: 'Eintrag erfolgreich eingereicht!' });
 
     } catch (err) {
-        console.error("Datenbankfehler:", err);
-        res.status(500).json({ error: 'Serverfehler: ' + err.message });
+        console.error("Datenbankfehler beim Speichern:", err);
+        res.status(500).json({ error: 'Serverfehler beim Speichern: ' + err.message });
     }
 });
 
@@ -72,24 +78,28 @@ app.post('/api/admin/eintraege', async (req, res) => {
     }
 });
 
+// Admin-Route: Freischalten mit striktem Boolean-Wert
 app.post('/api/admin/freischalten', async (req, res) => {
     const { password, id } = req.body;
     if (password !== ADMIN_PASSWORD) return res.status(401).json({ error: 'Falsches Passwort' });
     try {
         await db.update({ _id: id }, { $set: { freigegeben: true } });
-        res.json({ message: 'Eintrag freigeschaltet' });
+        res.json({ success: true, message: 'Eintrag erfolgreich freigeschaltet' });
     } catch (err) {
+        console.error("Fehler beim Freischalten:", err);
         res.status(500).json({ error: err.message });
     }
 });
 
+// Admin-Route: Löschen
 app.post('/api/admin/loeschen', async (req, res) => {
     const { password, id } = req.body;
     if (password !== ADMIN_PASSWORD) return res.status(401).json({ error: 'Falsches Passwort' });
     try {
         await db.remove({ _id: id }, {});
-        res.json({ message: 'Eintrag gelöscht' });
+        res.json({ success: true, message: 'Eintrag gelöscht' });
     } catch (err) {
+        console.error("Fehler beim Löschen:", err);
         res.status(500).json({ error: err.message });
     }
 });
