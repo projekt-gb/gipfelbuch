@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gipfelbuch am Gedrechter – Einträge</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            padding: 15px; 
+            background-color: #f4f7f6; 
+            color: #333; 
+        }
+        .card { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+        }
+        h2 { 
+            margin-top: 0; 
+            color: #2c3e50; 
+            border-bottom: 2px solid #27ae60; 
+            padding-bottom: 10px; 
+        }
+        .eintrag { 
+            border-bottom: 1px solid #eee; 
+            padding: 12px 0; 
+        }
+        .eintrag:last-child { 
+            border-bottom: none; 
+        }
+        .eintrag-header { 
+            font-weight: bold; 
+            color: #2c3e50; 
+            font-size: 1.05em; 
+        }
+        .eintrag-datum { 
+            font-size: 0.8em; 
+            color: #7f8c8d; 
+            margin-top: 2px; 
+        }
+        .eintrag-text { 
+            margin: 8px 0 0 0; 
+            line-height: 1.4; 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Gipfelbuch-Einträge</h2>
+        <div id="eintraegeListe">Lade Einträge...</div>
+    </div>
+
+    <script>
+        // Funktion zum Abrufen aller freigeschalteten Beiträge
+        async function ladeEintraege() {
+            try {
+                const res = await fetch('/api/eintraege');
+                const eintraege = await res.json();
+                const liste = document.getElementById('eintraegeListe');
+                
+                if (!Array.isArray(eintraege) || eintraege.length === 0) {
+                    liste.innerHTML = '<p>Noch keine freigeschalteten Einträge vorhanden.</p>';
+                    return;
+                }
+
+                // Durchläuft ausnahmslos alle freigegebenen Einträge
+                liste.innerHTML = eintraege.map(e => `
+                    <div class="eintrag">
+                        <div class="eintrag-header">${escapeHtml(e.name)}</div>
+                        <div class="eintrag-datum">${new Date(e.datum).toLocaleString('de-DE')} Uhr</div>
+                        <p class="eintrag-text">${escapeHtml(e.nachricht || '')}</p>
+                    </div>
+                `).join('');
+            } catch (err) {
+                document.getElementById('eintraegeListe').innerText = 'Fehler beim Laden der Einträge.';
+            }
+        }
+
+        // Schutz vor Cross-Site-Scripting (XSS)
+        function escapeHtml(str) {
+            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        // Beim Laden der Seite direkt ausführen
+        ladeEintraege();
+    </script>
+</body>
+</html>
