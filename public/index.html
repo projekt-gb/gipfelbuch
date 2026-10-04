@@ -46,9 +46,7 @@
 </head>
 <body>
 
-    <h1>🏔️ Gipfelbuch am Gedrechter</h1>
-
-    <div class="card">
+      <div class="card">
         <h2>Ins Gipfelbuch eintragen</h2>
         <form id="gipfelForm">
             <label for="name">Dein Name / Team:</label>
@@ -107,7 +105,9 @@
                 if (res.ok) {
                     document.getElementById('name').value = '';
                     document.getElementById('nachricht').value = '';
+                    alert('Vielen Dank! Dein Eintrag wurde übermittelt und wird nach kurzer Prüfung freigeschaltet.');
                     ladeEintraege();
+                }
                 } else {
                     alert('Fehler beim Speichern des Eintrags.');
                 }
