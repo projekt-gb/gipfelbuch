@@ -21,6 +21,15 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
             margin-bottom: 20px; 
         }
+        .info-box {
+            background-color: #e8f4f8;
+            border-left: 4px solid #2980b9;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            border-radius: 0 4px 4px 0;
+            font-size: 0.9em;
+            color: #2c3e50;
+        }
         label { display: block; margin-top: 10px; font-weight: bold; }
         input, textarea, button { 
             width: 100%; 
@@ -29,6 +38,13 @@
             border: 1px solid #ccc; 
             border-radius: 4px; 
             box-sizing: border-box; 
+        }
+        .captcha-box {
+            background: #eef2f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 15px;
+            border: 1px dashed #7f8c8d;
         }
         button { 
             background-color: #27ae60; 
@@ -46,8 +62,16 @@
 </head>
 <body>
 
-      <div class="card">
+    <h1>🏔️ Gipfelbuch am Gedrechter</h1>
+
+    <div class="card">
         <h2>Ins Gipfelbuch eintragen</h2>
+        
+        <!-- Hinweistext zur Prüfung durch den WSV -->
+        <div class="info-box">
+            ℹ️ <strong>Hinweis:</strong> Jeder Eintrag wird vom Wintersportverein Kaltenbach-Ried geprüft und anschließend freigeschaltet.
+        </div>
+
         <form id="gipfelForm">
             <label for="name">Dein Name / Team:</label>
             <input type="text" id="name" name="name" placeholder="z. B. Anna & Lukas" required>
@@ -55,7 +79,13 @@
             <label for="nachricht">Deine Nachricht:</label>
             <textarea id="nachricht" name="nachricht" rows="4" placeholder="Wetter, Aussicht, Tour..."></textarea>
 
-            <button type="submit">Eintrag speichern</button>
+            <!-- Captcha-Sicherheitsbereich -->
+            <div class="captcha-box">
+                <label id="captchaLabel" for="captchaInput">Sicherheitsfrage:</label>
+                <input type="number" id="captchaInput" placeholder="Antwort eingeben" required>
+            </div>
+
+            <button type="submit" id="submitBtn">Eintrag speichern</button>
         </form>
     </div>
 
@@ -65,7 +95,16 @@
     </div>
 
     <script>
-        // 1. Alle gespeicherten Einträge vom Backend laden
+        let num1 = 0;
+        let num2 = 0;
+
+        function erstelleCaptcha() {
+            num1 = Math.floor(Math.random() * 9) + 1;
+            num2 = Math.floor(Math.random() * 9) + 1;
+            document.getElementById('captchaLabel').innerText = `Sicherheitsfrage: Was ist ${num1} + ${num2}?`;
+            document.getElementById('captchaInput').value = '';
+        }
+
         async function ladeEintraege() {
             try {
                 const res = await fetch('/api/eintraege');
@@ -89,39 +128,48 @@
             }
         }
 
-        // 2. Neuen Eintrag an das Backend senden
         document.getElementById('gipfelForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('name').value;
             const nachricht = document.getElementById('nachricht').value;
+            const captchaAnswer = document.getElementById('captchaInput').value;
+            const expectedSum = num1 + num2;
 
             try {
                 const res = await fetch('/api/eintraege', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, nachricht })
+                    body: JSON.stringify({ 
+                        name, 
+                        nachricht, 
+                        captchaAnswer, 
+                        captchaExpected: expectedSum 
+                    })
                 });
 
-                if (res.ok) {
+                const data = await res.json();
+
+                if (res.ok && data.success) {
                     document.getElementById('name').value = '';
                     document.getElementById('nachricht').value = '';
-                    alert('Vielen Dank! Dein Eintrag wurde übermittelt und wird nach kurzer Prüfung freigeschaltet.');
+                    // WSV explizit in der Bestätigungsmeldung erwähnt
+                    alert('Vielen Dank! Dein Eintrag wurde übermittelt, wird vom WSV geprüft und anschließend freigeschaltet.');
+                    erstelleCaptcha();
                     ladeEintraege();
-                }
                 } else {
-                    alert('Fehler beim Speichern des Eintrags.');
+                    alert('Fehler: ' + (data.error || 'Eintrag konnte nicht gespeichert werden.'));
+                    erstelleCaptcha();
                 }
             } catch (err) {
                 alert('Netzwerkfehler beim Speichern.');
             }
         });
 
-        // Sicherheitsfunktion gegen Skripteinspeisung (XSS)
         function escapeHtml(str) {
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
         }
 
-        // Aufruf beim Laden der Seite
+        erstelleCaptcha();
         ladeEintraege();
     </script>
 </body>
