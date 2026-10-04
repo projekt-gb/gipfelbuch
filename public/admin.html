@@ -25,13 +25,61 @@
     <div id="liste"></div>
 
     <script>
-        async function ladeAdminEintraege() {
-            const password = document.getElementById('pw').value;
-            const res = await fetch('/api/admin/eintraege', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password })
-            });
+       async function ladeAdminEintraege() {
+    const password = document.getElementById('pw').value.trim();
+    
+    if (!password) {
+        alert('Bitte gib das Admin-Passwort ein.');
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/admin/eintraege', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password })
+        });
+
+        if (res.status === 401) {
+            alert('Falsches Passwort! Bitte überprüfe die Eingabe (Standard: geheim123).');
+            return;
+        }
+
+        if (!res.ok) {
+            alert('Server-Fehler (' + res.status + '). Der Server startet eventuell noch neu.');
+            return;
+        }
+
+        const eintraege = await res.json();
+        const liste = document.getElementById('liste');
+
+        if (eintraege.length === 0) {
+            liste.innerHTML = '<div class="card"><p>Keine Einträge vorhanden.</p></div>';
+            return;
+        }
+
+        liste.innerHTML = eintraege.map(e => `
+            <div class="card">
+                <span class="badge ${e.freigegeben ? 'badge-approved' : 'badge-pending'}">
+                    ${e.freigegeben ? 'Öffentlich' : 'Ausstehend'}
+                </span>
+                <h3>${escapeHtml(e.name)}</h3>
+                <p>${escapeHtml(e.nachricht || '')}</p>
+                <small>${new Date(e.datum).toLocaleString('de-DE')}</small><br><br>
+                ${!e.freigegeben ? `<button class="btn-ok" onclick="freischalten('${e._id}')">Freigeben</button>` : ''}
+                <button class="btn-del" onclick="loeschen('${e._id}')">Löschen</button>
+            </div>
+        `).join('');
+
+    } catch (err) {
+        alert('Netzwerkfehler: Der Server ist aktuell nicht erreichbar. Bitte warte 30 Sekunden.');
+    }
+}
+
+// Hilfsfunktion zur Sicherheit
+function escapeHtml(str) {
+    return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
 
             if (!res.ok) return alert('Zugriff verweigert! Falsches Passwort.');
             
