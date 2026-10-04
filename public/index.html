@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gipfelbuch am Gedrechter</title>
     <style>
         body { 
             font-family: Arial, sans-serif; 
@@ -89,21 +90,19 @@
 </head>
 <body>
 
-    <h1>🏔️ Gipfelbuch am Gedrechter</h1>
-
     <div class="card">
-        <h2>Ins Gipfelbuch eintragen</h2>
+        <h2>Mein Eintrag ins Gipfelbuch</h2>
         
         <div class="info-box">
-            ℹ️ <strong>Hinweis:</strong> Jeder Eintrag wird vom Wintersportverein Kaltenbach-Ried geprüft und anschließend freigeschaltet. Datum und Uhrzeit wird vollautomatisch ergänzt.
+            ℹ️ <strong>Hinweis:</strong> Jeder Eintrag wird vom Wintersportverein Kaltenbach-Ried geprüft und anschließend freigeschaltet.
         </div>
 
         <form id="gipfelForm">
             <label for="name">Dein Name / Team:</label>
-            <input type="text" id="name" name="name" placeholder="Max Muster" required>
+            <input type="text" id="name" name="name" placeholder="z. B. Anna & Lukas" required>
 
-            <label for="nachricht">Dein Eintrag:</label>
-            <textarea id="nachricht" name="nachricht" rows="4"></textarea>
+            <label for="nachricht">Deine Nachricht:</label>
+            <textarea id="nachricht" name="nachricht" rows="4" placeholder="Wetter, Aussicht, Tour..."></textarea>
 
             <div class="captcha-box">
                 <label id="captchaLabel" for="captchaInput">Sicherheitsfrage:</label>
@@ -215,7 +214,7 @@
                     submitBtn.disabled = false;
                     submitBtn.classList.remove('btn-disabled');
                     submitBtn.innerText = 'Eintrag speichern';
-                }, 3000);
+                }, 6000);
             }
         });
 
