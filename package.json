@@ -1,13 +1,16 @@
 {
   "name": "gipfelbuch",
   "version": "1.0.0",
-  "description": "Digitales Gipfelbuch fuer den Verein",
+  "description": "Digitales Gipfelbuch am Gedrechter",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.19.2",
-    "sqlite3": "^5.1.7"
+    "better-sqlite3": "^11.3.0",
+    "express": "^4.19.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
