@@ -37,7 +37,7 @@ if (!mongoURI) {
 // Hier legen wir fest, welche Felder ein Gipfelbucheintrag hat
 const gipfelEintragSchema = new mongoose.Schema({
     name: { type: String, required: true },
-    gipfel: { type: String, required: true },
+    gipfel: { type: String, default: "Gedrechter" }, // Optional oder Standardwert
     nachricht: { type: String, required: true },
     freigegeben: { type: Boolean, default: false }, // Neue Einträge müssen erst freigegeben werden
     datum: { type: Date, default: Date.now }
@@ -62,15 +62,14 @@ app.get('/api/eintraege', async (req, res) => {
     }
 });
 
-// POST: Einen NEUEN Gipfelbucheintrag erstellen
-app.post('/api/eintrag', async (req, res) => {
+// POST: Einen NEUEN Gipfelbucheintrag erstellen (Angepasst an das Frontend: /api/eintraege)
+app.post('/api/eintraege', async (req, res) => {
     try {
-        const { name, gipfel, nachricht } = req.body;
+        const { name, nachricht } = req.body;
 
         const neuerEintrag = new Eintrag({
-            name,
-            gipfel,
-            nachricht,
+            name: name,
+            nachricht: nachricht,
             freigegeben: false // Auf false setzen, damit er moderiert werden kann
         });
 
@@ -78,10 +77,11 @@ app.post('/api/eintrag', async (req, res) => {
         await neuerEintrag.save();
         console.log("Neuer Eintrag gespeichert (wartet auf Freigabe):", neuerEintrag);
 
-        res.status(201).json({ message: "Eintrag erfolgreich gespeichert und wartet auf Freigabe." });
+        // Erfolgsantwort im Format senden, das die index.html erwartet
+        res.json({ success: true, message: "Eintrag erfolgreich gespeichert und wartet auf Freigabe." });
     } catch (err) {
         console.error("Fehler beim Speichern des Eintrags:", err);
-        res.status(500).json({ error: "Fehler beim Speichern des Eintrags." });
+        res.status(500).json({ success: false, error: "Fehler beim Speichern des Eintrags." });
     }
 });
 
