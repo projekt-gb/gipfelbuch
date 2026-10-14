@@ -10,17 +10,15 @@ const app = express();
 // ==========================================
 // 2. MIDDLEWARE CONFIGURATION
 // ==========================================
-// Verarbeitet Formulardaten (POST-Requests)
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Stellt statische Dateien (z. B. HTML, CSS, Bilder) aus dem 'public'-Ordner bereit
+// Statische Dateien bereitstellen
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ==========================================
 // 3. MONGODB ATLAS VERBINDUNG
 // ==========================================
-// Holt den Connection String aus den Render-Umgebungsvariablen (MONGO_URI)
 const mongoURI = process.env.MONGO_URI;
 
 if (!mongoURI) {
@@ -34,26 +32,22 @@ if (!mongoURI) {
 // ==========================================
 // 4. DATENBANK-SCHEMA & MODEL DEFINIEREN
 // ==========================================
-// Hier legen wir fest, welche Felder ein Gipfelbucheintrag hat
 const gipfelEintragSchema = new mongoose.Schema({
     name: { type: String, required: true },
-    gipfel: { type: String, default: "Gedrechter" }, // Optional oder Standardwert
     nachricht: { type: String, required: true },
-    freigegeben: { type: Boolean, default: false }, // Neue Einträge müssen erst freigegeben werden
+    freigegeben: { type: Boolean, default: false },
     datum: { type: Date, default: Date.now }
 });
 
-// Erstellt das Model 'Eintrag' basierend auf dem Schema
 const Eintrag = mongoose.model('Eintrag', gipfelEintragSchema);
 
 // ==========================================
 // 5. ROUTES (ENDPUNKTE)
 // ==========================================
 
-// GET: Alle FREIGEGEBENEN Einträge für das Gipfelbuch abrufen
+// GET: Alle freigegebenen Einträge abrufen
 app.get('/api/eintraege', async (req, res) => {
     try {
-        // Findet alle Einträge, bei denen 'freigegeben' auf true steht
         const eintraege = await Eintrag.find({ freigegeben: true }).sort({ datum: -1 });
         res.json(eintraege);
     } catch (err) {
@@ -62,49 +56,31 @@ app.get('/api/eintraege', async (req, res) => {
     }
 });
 
-// POST: Einen NEUEN Gipfelbucheintrag erstellen (Angepasst an das Frontend: /api/eintraege)
+// POST: Neuen Eintrag speichern (mit detaillierter Fehlerausgabe für den Test)
 app.post('/api/eintraege', async (req, res) => {
     try {
         const { name, nachricht } = req.body;
 
+        // Validierung, ob Felder ausgefüllt sind
+        if (!name || !nachricht) {
+            return res.status(400).json({ success: false, error: "Name und Nachricht dürfen nicht leer sein." });
+        }
+
         const neuerEintrag = new Eintrag({
             name: name,
             nachricht: nachricht,
-            freigegeben: false // Auf false setzen, damit er moderiert werden kann
+            freigegeben: false
         });
 
         // In MongoDB Atlas speichern
         await neuerEintrag.save();
-        console.log("Neuer Eintrag gespeichert (wartet auf Freigabe):", neuerEintrag);
+        console.log("Neuer Eintrag erfolgreich in MongoDB gespeichert:", neuerEintrag);
 
-        // Erfolgsantwort im Format senden, das die index.html erwartet
-        res.json({ success: true, message: "Eintrag erfolgreich gespeichert und wartet auf Freigabe." });
+        res.json({ success: true, message: "Eintrag erfolgreich gespeichert." });
     } catch (err) {
-        console.error("Fehler beim Speichern des Eintrags:", err);
-        res.status(500).json({ success: false, error: "Fehler beim Speichern des Eintrags." });
-    }
-});
-
-// POST: Einen Eintrag FREIGEBEN (für Admin/Moderation)
-app.post('/api/freigeben/:id', async (req, res) => {
-    try {
-        const eintragId = req.params.id;
-        await Eintrag.findByIdAndUpdate(eintragId, { freigegeben: true });
-        console.log(`Eintrag ${eintragId} wurde freigegeben.`);
-        res.json({ message: "Eintrag erfolgreich freigegeben." });
-    } catch (err) {
-        console.error("Fehler bei der Freigabe:", err);
-        res.status(500).json({ error: "Fehler bei der Freigabe." });
-    }
-});
-
-// GET: Alle UNFREIGEGEBENEN Einträge abrufen (für deine Admin-Ansicht)
-app.get('/api/admin/offene-eintraege', async (req, res) => {
-    try {
-        const offeneEintraege = await Eintrag.find({ freigegeben: false }).sort({ datum: -1 });
-        res.json(offeneEintraege);
-    } catch (err) {
-        res.status(500).json({ error: "Fehler beim Laden der offenen Einträge." });
+        // Hier geben wir den echten Fehlertext an das Frontend zurück, um die Ursache sofort zu sehen!
+        console.error("Detaillierter Fehler beim Speichern:", err);
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
