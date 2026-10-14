@@ -24,9 +24,11 @@ const mongoURI = process.env.MONGO_URI || '';
 if (!mongoURI) {
     console.error("FEHLER: Keine MONGO_URI Umgebungsvariable in Render gefunden!");
 } else {
-    mongoose.connect(mongoURI)
-        .then(() => console.log("🟢 Erfolgreich mit MongoDB Atlas verbunden!"))
-        .catch(err => console.error("🔴 Verbindungsfehler zu MongoDB Atlas:", err.message));
+    mongoose.connect(mongoURI, {
+        serverSelectionTimeoutMS: 5000 // Bricht bei Verbindungsproblemen nach 5 Sek. statt 30 Sek. ab
+    })
+    .then(() => console.log("🟢 Erfolgreich mit MongoDB Atlas verbunden!"))
+    .catch(err => console.error("🔴 Verbindungsfehler zu MongoDB Atlas:", err.message));
 }
 
 // ==========================================
@@ -37,11 +39,12 @@ const gipfelEintragSchema = new mongoose.Schema({
     nachricht: { type: String, default: '' },
     summitCode: { type: Number },
     captchaAnswer: { type: Number },
-    freigegeben: { type: Boolean, default: false }, // Korrigiert: Sauber auf false gesetzt
+    freigegeben: { type: Boolean, default: false },
     datum: { type: Date, default: Date.now }
 });
 
-const Eintrag = mongoose.model('Eintrag', gipfelEintragSchema);
+// WICHTIG: Wir erzwingen hier den exakten Collection-Namen 'eintraege' in MongoDB Atlas
+const Eintrag = mongoose.model('Eintrag', gipfelEintragSchema, 'eintraege');
 
 // ==========================================
 // 5. ROUTES (ENDPUNKTE)
@@ -51,7 +54,7 @@ const Eintrag = mongoose.model('Eintrag', gipfelEintragSchema);
 app.get('/api/eintraege', async (req, res) => {
     try {
         if (mongoose.connection.readyState !== 1) {
-            return res.status(500).json({ error: "Datenbankverbindung nicht bereit." });
+            return res.status(500).json({ error: "Datenbankverbindung noch nicht bereit." });
         }
         const eintraege = await Eintrag.find({ freigegeben: true }).sort({ datum: -1 });
         res.json(eintraege);
