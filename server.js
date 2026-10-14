@@ -13,7 +13,7 @@ const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Statische Dateien bereitstellen
+// Statische Dateien aus dem 'public'-Ordner bereitstellen
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ==========================================
@@ -34,7 +34,7 @@ if (!mongoURI) {
 // ==========================================
 const gipfelEintragSchema = new mongoose.Schema({
     name: { type: String, required: true },
-    nachricht: { type: String, required: true },
+    nachricht: { type: String, default: '' },
     freigegeben: { type: Boolean, default: false },
     datum: { type: Date, default: Date.now }
 });
@@ -56,30 +56,30 @@ app.get('/api/eintraege', async (req, res) => {
     }
 });
 
-// POST: Neuen Eintrag speichern (mit detaillierter Fehlerausgabe für den Test)
+// POST: Neuen Eintrag speichern (nimmt alle Frontend-Daten entgegen)
 app.post('/api/eintraege', async (req, res) => {
     try {
-        const { name, nachricht } = req.body;
+        const { name, nachricht, summitCode, captchaAnswer } = req.body;
 
-        // Validierung, ob Felder ausgefüllt sind
-        if (!name || !nachricht) {
-            return res.status(400).json({ success: false, error: "Name und Nachricht dürfen nicht leer sein." });
+        console.log("📥 Empfangene Formulardaten:", { name, nachricht, summitCode, captchaAnswer });
+
+        if (!name) {
+            return res.status(400).json({ success: false, error: "Der Name darf nicht leer sein." });
         }
 
+        // Neuen Eintrag in MongoDB Atlas anlegen
         const neuerEintrag = new Eintrag({
             name: name,
-            nachricht: nachricht,
-            freigegeben: false
+            nachricht: nachricht || '',
+            freigegeben: false // Wartet auf Freigabe
         });
 
-        // In MongoDB Atlas speichern
         await neuerEintrag.save();
-        console.log("Neuer Eintrag erfolgreich in MongoDB gespeichert:", neuerEintrag);
+        console.log("🟢 Eintrag erfolgreich in MongoDB Atlas gespeichert!");
 
         res.json({ success: true, message: "Eintrag erfolgreich gespeichert." });
     } catch (err) {
-        // Hier geben wir den echten Fehlertext an das Frontend zurück, um die Ursache sofort zu sehen!
-        console.error("Detaillierter Fehler beim Speichern:", err);
+        console.error("🔴 Fehler beim Speichern in MongoDB:", err.message);
         res.status(500).json({ success: false, error: err.message });
     }
 });
