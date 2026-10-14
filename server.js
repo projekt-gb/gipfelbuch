@@ -11,7 +11,7 @@ const app = express();
 // 2. MIDDLEWARE CONFIGURATION
 // ==========================================
 app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.json()); // WICHTIG: Damit JSON-Bodys (Passwörter) gelesen werden können
 
 // Statische Dateien (HTML, CSS, JS) aus dem 'public'-Ordner bereitstellen
 app.use(express.static(path.join(__dirname, 'public')));
@@ -46,39 +46,36 @@ const gipfelEintragSchema = new mongoose.Schema({
 const Eintrag = mongoose.model('Eintrag', gipfelEintragSchema, 'eintraege');
 
 // ==========================================
-// 5. ROUTES (ENDPUNKTE)
+// 5. HILSFUNKTION FÜR DAS ADMIN-PASSWORT
+// ==========================================
+// Nutzt Render-Variable oder standardmäßig 'geheim123'
+const getAdminPassword = () => process.env.ADMIN_PASSWORD || 'geheim123';
+
+// ==========================================
+// 6. ROUTES (ENDPUNKTE)
 // ==========================================
 
-// EXPLICIT ROUTE: Admin-Seite aufrufen
+// Admin-Seite direkt aufrufen
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-// GET: Alle freigegebenen Einträge abrufen (Öffentliches Gipfelbuch)
+// GET: Öffentliche Einträge abrufen
 app.get('/api/eintraege', async (req, res) => {
     try {
-        if (mongoose.connection.readyState !== 1) {
-            return res.status(500).json({ error: "Datenbankverbindung nicht bereit." });
-        }
         const eintraege = await Eintrag.find({ freigegeben: true }).sort({ datum: -1 });
         res.json(eintraege);
     } catch (err) {
-        console.error("Fehler beim Abrufen der Einträge:", err.message);
         res.status(500).json({ error: "Fehler beim Laden der Einträge." });
     }
 });
 
-// POST: Neuen Eintrag speichern (Öffentliches Formular)
+// POST: Neuen Eintrag speichern
 app.post('/api/eintraege', async (req, res) => {
     try {
-        if (mongoose.connection.readyState !== 1) {
-            return res.status(500).json({ success: false, error: "Keine Verbindung zur Datenbank." });
-        }
-
         const { name, nachricht, summitCode, captchaAnswer } = req.body;
-
         if (!name || name.trim() === "") {
-            return res.status(400).json({ success: false, error: "Der Name darf nicht leer sein." });
+            return res.status(400).json({ success: false, error: "Name darf nicht leer sein." });
         }
 
         const neuerEintrag = new Eintrag({
@@ -90,31 +87,27 @@ app.post('/api/eintraege', async (req, res) => {
         });
 
         await neuerEintrag.save();
-        console.log("🟢 Neuer Eintrag erfolgreich gespeichert!");
-
         res.json({ success: true, message: "Eintrag erfolgreich gespeichert." });
     } catch (err) {
-        console.error("🔴 Fehler beim Speichern:", err.message);
         res.status(500).json({ success: false, error: err.message });
     }
 });
 
 // ------------------------------------------
-// ADMIN-ENDPUNKTE (Passwortprüfung im Body)
+// ADMIN-MODERATIONS-ENDPUNKTE
 // ------------------------------------------
 
-// 1. Alle Einträge für Admin laden
+// 1. Alle Einträge (öffentlich + ausstehend) für Admin laden
 app.post('/api/admin/eintraege', async (req, res) => {
     try {
         const { password } = req.body;
-        if (password !== process.env.ADMIN_PASSWORD) {
+        if (password !== getAdminPassword()) {
             return res.status(401).json({ error: "Falsches Passwort." });
         }
 
         const eintraege = await Eintrag.find({}).sort({ datum: -1 });
         res.json(eintraege);
     } catch (err) {
-        console.error("Fehler beim Laden der Admin-Einträge:", err.message);
         res.status(500).json({ error: "Serverfehler." });
     }
 });
@@ -123,15 +116,13 @@ app.post('/api/admin/eintraege', async (req, res) => {
 app.post('/api/admin/freischalten', async (req, res) => {
     try {
         const { password, id } = req.body;
-        if (password !== process.env.ADMIN_PASSWORD) {
+        if (password !== getAdminPassword()) {
             return res.status(401).json({ error: "Falsches Passwort." });
         }
 
         await Eintrag.findByIdAndUpdate(id, { freigegeben: true });
-        console.log(`🟢 Eintrag ${id} wurde freigegeben.`);
         res.json({ success: true });
     } catch (err) {
-        console.error("Fehler beim Freischalten:", err.message);
         res.status(500).json({ error: "Serverfehler." });
     }
 });
@@ -140,21 +131,19 @@ app.post('/api/admin/freischalten', async (req, res) => {
 app.post('/api/admin/loeschen', async (req, res) => {
     try {
         const { password, id } = req.body;
-        if (password !== process.env.ADMIN_PASSWORD) {
+        if (password !== getAdminPassword()) {
             return res.status(401).json({ error: "Falsches Passwort." });
         }
 
         await Eintrag.findByIdAndDelete(id);
-        console.log(`🗑️ Eintrag ${id} wurde gelöscht.`);
         res.json({ success: true });
     } catch (err) {
-        console.error("Fehler beim Löschen:", err.message);
         res.status(500).json({ error: "Serverfehler." });
     }
 });
 
 // ==========================================
-// 6. SERVER STARTEN
+// 7. SERVER STARTEN
 // ==========================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
