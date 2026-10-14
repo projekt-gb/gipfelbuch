@@ -49,12 +49,12 @@ const Eintrag = mongoose.model('Eintrag', gipfelEintragSchema, 'eintraege');
 // 5. ROUTES (ENDPUNKTE)
 // ==========================================
 
-// EXPLICIT ROUTE: Admin-Seite aufrufen (falls sie admin.html im public-Ordner heißt)
+// EXPLICIT ROUTE: Admin-Seite aufrufen
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-// GET: Alle freigegebenen Einträge abrufen (für das öffentliche Gipfelbuch)
+// GET: Alle freigegebenen Einträge abrufen (Öffentliches Gipfelbuch)
 app.get('/api/eintraege', async (req, res) => {
     try {
         if (mongoose.connection.readyState !== 1) {
@@ -68,7 +68,7 @@ app.get('/api/eintraege', async (req, res) => {
     }
 });
 
-// POST: Neuen Eintrag speichern
+// POST: Neuen Eintrag speichern (Öffentliches Formular)
 app.post('/api/eintraege', async (req, res) => {
     try {
         if (mongoose.connection.readyState !== 1) {
@@ -93,33 +93,63 @@ app.post('/api/eintraege', async (req, res) => {
         console.log("🟢 Neuer Eintrag erfolgreich gespeichert!");
 
         res.json({ success: true, message: "Eintrag erfolgreich gespeichert." });
-    } hast (err) {
+    } catch (err) {
         console.error("🔴 Fehler beim Speichern:", err.message);
         res.status(500).json({ success: false, error: err.message });
     }
 });
 
-// GET: Alle UNFREIGEGEBENEN Einträge abrufen (für die Admin-Ansicht)
-app.get('/api/admin/offene-eintraege', async (req, res) => {
+// ------------------------------------------
+// ADMIN-ENDPUNKTE (Passwortprüfung im Body)
+// ------------------------------------------
+
+// 1. Alle Einträge für Admin laden
+app.post('/api/admin/eintraege', async (req, res) => {
     try {
-        const offeneEintraege = await Eintrag.find({ freigegeben: false }).sort({ datum: -1 });
-        res.json(offeneEintraege);
+        const { password } = req.body;
+        if (password !== process.env.ADMIN_PASSWORD) {
+            return res.status(401).json({ error: "Falsches Passwort." });
+        }
+
+        const eintraege = await Eintrag.find({}).sort({ datum: -1 });
+        res.json(eintraege);
     } catch (err) {
-        console.error("Fehler beim Laden der offenen Einträge:", err.message);
-        res.status(500).json({ error: "Fehler beim Laden der offenen Einträge." });
+        console.error("Fehler beim Laden der Admin-Einträge:", err.message);
+        res.status(500).json({ error: "Serverfehler." });
     }
 });
 
-// POST: Einen Eintrag FREIGEBEN (Moderation)
-app.post('/api/freigeben/:id', async (req, res) => {
+// 2. Eintrag freischalten
+app.post('/api/admin/freischalten', async (req, res) => {
     try {
-        const eintragId = req.params.id;
-        await Eintrag.findByIdAndUpdate(eintragId, { freigegeben: true });
-        console.log(`🟢 Eintrag ${eintragId} wurde freigegeben.`);
-        res.json({ success: true, message: "Eintrag erfolgreich freigegeben." });
+        const { password, id } = req.body;
+        if (password !== process.env.ADMIN_PASSWORD) {
+            return res.status(401).json({ error: "Falsches Passwort." });
+        }
+
+        await Eintrag.findByIdAndUpdate(id, { freigegeben: true });
+        console.log(`🟢 Eintrag ${id} wurde freigegeben.`);
+        res.json({ success: true });
     } catch (err) {
-        console.error("Fehler bei der Freigabe:", err.message);
-        res.status(500).json({ success: false, error: "Fehler bei der Freigabe." });
+        console.error("Fehler beim Freischalten:", err.message);
+        res.status(500).json({ error: "Serverfehler." });
+    }
+});
+
+// 3. Eintrag löschen
+app.post('/api/admin/loeschen', async (req, res) => {
+    try {
+        const { password, id } = req.body;
+        if (password !== process.env.ADMIN_PASSWORD) {
+            return res.status(401).json({ error: "Falsches Passwort." });
+        }
+
+        await Eintrag.findByIdAndDelete(id);
+        console.log(`🗑️ Eintrag ${id} wurde gelöscht.`);
+        res.json({ success: true });
+    } catch (err) {
+        console.error("Fehler beim Löschen:", err.message);
+        res.status(500).json({ error: "Serverfehler." });
     }
 });
 
