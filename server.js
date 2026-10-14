@@ -13,7 +13,7 @@ const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Statische Dateien aus dem 'public'-Ordner bereitstellen
+// Statische Dateien (HTML, CSS, JS) aus dem 'public'-Ordner bereitstellen
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ==========================================
@@ -25,7 +25,7 @@ if (!mongoURI) {
     console.error("FEHLER: Keine MONGO_URI Umgebungsvariable in Render gefunden!");
 } else {
     mongoose.connect(mongoURI, {
-        serverSelectionTimeoutMS: 5000 // Bricht bei Verbindungsproblemen nach 5 Sek. statt 30 Sek. ab
+        serverSelectionTimeoutMS: 5000
     })
     .then(() => console.log("🟢 Erfolgreich mit MongoDB Atlas verbunden!"))
     .catch(err => console.error("🔴 Verbindungsfehler zu MongoDB Atlas:", err.message));
@@ -43,18 +43,22 @@ const gipfelEintragSchema = new mongoose.Schema({
     datum: { type: Date, default: Date.now }
 });
 
-// WICHTIG: Wir erzwingen hier den exakten Collection-Namen 'eintraege' in MongoDB Atlas
 const Eintrag = mongoose.model('Eintrag', gipfelEintragSchema, 'eintraege');
 
 // ==========================================
 // 5. ROUTES (ENDPUNKTE)
 // ==========================================
 
-// GET: Alle freigegebenen Einträge abrufen
+// EXPLICIT ROUTE: Admin-Seite aufrufen (falls sie admin.html im public-Ordner heißt)
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// GET: Alle freigegebenen Einträge abrufen (für das öffentliche Gipfelbuch)
 app.get('/api/eintraege', async (req, res) => {
     try {
         if (mongoose.connection.readyState !== 1) {
-            return res.status(500).json({ error: "Datenbankverbindung noch nicht bereit." });
+            return res.status(500).json({ error: "Datenbankverbindung nicht bereit." });
         }
         const eintraege = await Eintrag.find({ freigegeben: true }).sort({ datum: -1 });
         res.json(eintraege);
@@ -89,9 +93,33 @@ app.post('/api/eintraege', async (req, res) => {
         console.log("🟢 Neuer Eintrag erfolgreich gespeichert!");
 
         res.json({ success: true, message: "Eintrag erfolgreich gespeichert." });
-    } catch (err) {
+    } hast (err) {
         console.error("🔴 Fehler beim Speichern:", err.message);
         res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// GET: Alle UNFREIGEGEBENEN Einträge abrufen (für die Admin-Ansicht)
+app.get('/api/admin/offene-eintraege', async (req, res) => {
+    try {
+        const offeneEintraege = await Eintrag.find({ freigegeben: false }).sort({ datum: -1 });
+        res.json(offeneEintraege);
+    } catch (err) {
+        console.error("Fehler beim Laden der offenen Einträge:", err.message);
+        res.status(500).json({ error: "Fehler beim Laden der offenen Einträge." });
+    }
+});
+
+// POST: Einen Eintrag FREIGEBEN (Moderation)
+app.post('/api/freigeben/:id', async (req, res) => {
+    try {
+        const eintragId = req.params.id;
+        await Eintrag.findByIdAndUpdate(eintragId, { freigegeben: true });
+        console.log(`🟢 Eintrag ${eintragId} wurde freigegeben.`);
+        res.json({ success: true, message: "Eintrag erfolgreich freigegeben." });
+    } catch (err) {
+        console.error("Fehler bei der Freigabe:", err.message);
+        res.status(500).json({ success: false, error: "Fehler bei der Freigabe." });
     }
 });
 
