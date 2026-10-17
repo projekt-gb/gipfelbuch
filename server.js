@@ -10,11 +10,11 @@ const app = express();
 // ==========================================
 // 2. MIDDLEWARE KONFIGURATION
 // ==========================================
-// Verarbeitet Formulardaten und JSON-Bodies aus Frontend-Anfragen (z.B. Fetch/POST)
+// Parsing von URL-encoded Formulardaten und JSON-Objekten
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Statische Dateien (HTML, CSS, JS) aus dem 'public'-Ordner bereitstellen
+// Statische Dateien (HTML, CSS, Frontend-JS) aus dem Ordner 'public' bereitstellen
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ==========================================
@@ -26,7 +26,7 @@ if (!mongoURI) {
     console.error("🔴 FEHLER: Keine MONGO_URI Umgebungsvariable in Render gefunden!");
 } else {
     mongoose.connect(mongoURI, {
-        serverSelectionTimeoutMS: 5000
+        serverSelectionTimeoutMS: 10000 // Maximale Wartezeit für den Verbindungsaufbau: 10 Sekunden
     })
     .then(() => console.log("🟢 Erfolgreich mit MongoDB Atlas verbunden!"))
     .catch(err => console.error("🔴 Verbindungsfehler zu MongoDB Atlas:", err.message));
@@ -35,39 +35,37 @@ if (!mongoURI) {
 // ==========================================
 // 4. DATENBANK-SCHEMA & MODEL DEFINIEREN
 // ==========================================
+// Schema definiert die Struktur eines Gipfelbuch-Eintrags
 const gipfelEintragSchema = new mongoose.Schema({
     name: { type: String, required: true },
     nachricht: { type: String, default: '' },
     summitCode: { type: Number },
     captchaAnswer: { type: Number },
-    freigegeben: { type: Boolean, default: false },
+    freigegeben: { type: Boolean, default: false }, // Neue Einträge müssen erst vom Admin freigeschaltet werden
     datum: { type: Date, default: Date.now }
 });
 
-// Verknüpfung mit der MongoDB Collection 'eintraege'
+// Verknüpfung des Schemas mit der MongoDB Collection 'eintraege'
 const Eintrag = mongoose.model('Eintrag', gipfelEintragSchema, 'eintraege');
 
 // ==========================================
 // 5. HILFSFUNKTION FÜR DAS ADMIN-PASSWORT
 // ==========================================
-// Prüft die Umgebungsvariable ADMIN_PASSWORD; greift sonst auf Fallback 'geheim123' zurück
+// Nutzt die Render-Umgebungsvariable ADMIN_PASSWORD oder standardmäßig 'geheim123'
 const getAdminPassword = () => process.env.ADMIN_PASSWORD || 'geheim123';
 
 // ==========================================
-// 6. ROUTES (ENDPUNKTE)
+// 6. ÖFFENTLICHE API-ROUTEN
 // ==========================================
 
-// EXPLICIT ROUTE: Admin-Seite direkt aufrufen
+// HTML-Route für die Admin-Oberfläche
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-// GET: Öffentliche (freigegebene) Einträge abrufen
+// GET: Lädt alle freigegebenen Einträge für die öffentliche Webseite
 app.get('/api/eintraege', async (req, res) => {
     try {
-        if (mongoose.connection.readyState !== 1) {
-            return res.status(500).json({ error: "Datenbankverbindung nicht bereit." });
-        }
         const eintraege = await Eintrag.find({ freigegeben: true }).sort({ datum: -1 });
         res.json(eintraege);
     } catch (err) {
@@ -76,13 +74,9 @@ app.get('/api/eintraege', async (req, res) => {
     }
 });
 
-// POST: Neuen Gipfelbucheintrag speichern
+// POST: Speichert einen neuen Eintrag im Gipfelbuch (wartet auf Freigabe)
 app.post('/api/eintraege', async (req, res) => {
     try {
-        if (mongoose.connection.readyState !== 1) {
-            return res.status(500).json({ success: false, error: "Keine Verbindung zur Datenbank." });
-        }
-
         const { name, nachricht, summitCode, captchaAnswer } = req.body;
 
         if (!name || name.trim() === "") {
@@ -94,53 +88,44 @@ app.post('/api/eintraege', async (req, res) => {
             nachricht: nachricht ? nachricht.trim() : '',
             summitCode: summitCode ? Number(summitCode) : undefined,
             captchaAnswer: captchaAnswer ? Number(captchaAnswer) : undefined,
-            freigegeben: false // Neue Einträge müssen erst vom Admin freigegeben werden
+            freigegeben: false
         });
 
         await neuerEintrag.save();
         console.log("🟢 Neuer Eintrag erfolgreich gespeichert!");
-
-        res.json({ success: true, message: "Eintrag erfolgreich gespeichert." });
+        res.json({ success: true, message: "Eintrag erfolgreich gespeichert. Er wird nach Prüfung freigeschaltet." });
     } catch (err) {
-        console.error("🔴 Fehler beim Speichern:", err.message);
+        console.error("🔴 Fehler beim Speichern des Eintrags:", err.message);
         res.status(500).json({ success: false, error: err.message });
     }
 });
 
-// ------------------------------------------
-// ADMIN-MODERATIONS-ENDPUNKTE
-// ------------------------------------------
+// ==========================================
+// 7. ADMIN-MODERATIONS-ROUTEN
+// ==========================================
 
-// 1. Alle Einträge für den Admin-Bereich laden
+// POST: Lädt alle Einträge (sowohl freigegebene als auch ausstehende) für das Admin-Dashboard
 app.post('/api/admin/eintraege', async (req, res) => {
     try {
         const { password } = req.body;
-
-        // Passwort-Prüfung
+        
         if (password !== getAdminPassword()) {
             return res.status(401).json({ error: "Falsches Passwort." });
         }
 
-        // Datenbank-Verbindungsprüfung
-        if (mongoose.connection.readyState !== 1) {
-            console.error("🔴 MongoDB ist nicht verbunden! Status:", mongoose.connection.readyState);
-            return res.status(500).json({ error: "Datenbank nicht bereit." });
-        }
-
-        // Alle Einträge abrufen (sowohl freigegebene als auch ausstehende)
         const eintraege = await Eintrag.find({}).sort({ datum: -1 });
         res.json(eintraege);
     } catch (err) {
-        console.error("🔴 Fehler beim Laden der Admin-Einträge:", err.message);
+        console.error("Fehler beim Laden der Admin-Einträge:", err.message);
         res.status(500).json({ error: "Serverfehler: " + err.message });
     }
 });
 
-// 2. Einen Eintrag freischalten
+// POST: Schaltet einen Eintrag anhand seiner ID frei
 app.post('/api/admin/freischalten', async (req, res) => {
     try {
         const { password, id } = req.body;
-
+        
         if (password !== getAdminPassword()) {
             return res.status(401).json({ error: "Falsches Passwort." });
         }
@@ -154,11 +139,11 @@ app.post('/api/admin/freischalten', async (req, res) => {
     }
 });
 
-// 3. Einen Eintrag löschen
+// POST: Löscht einen Eintrag anhand seiner ID
 app.post('/api/admin/loeschen', async (req, res) => {
     try {
         const { password, id } = req.body;
-
+        
         if (password !== getAdminPassword()) {
             return res.status(401).json({ error: "Falsches Passwort." });
         }
@@ -173,9 +158,9 @@ app.post('/api/admin/loeschen', async (req, res) => {
 });
 
 // ==========================================
-// 7. SERVER STARTEN
+// 8. SERVER STARTEN
 // ==========================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`🚀 Server läuft stabil auf Port ${PORT}`);
+    console.log(`🚀 Server läuft auf Port ${PORT}`);
 });
