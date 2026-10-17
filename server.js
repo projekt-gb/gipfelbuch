@@ -15,20 +15,17 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ==========================================
-// 3. MONGODB ATLAS VERBINDUNG (Timeout erhöht)
+// 3. MONGODB ATLAS VERBINDUNG
 // ==========================================
-const mongoURI = process.env.MONGO_URI || '';
+// Hier verwenden wir genau die korrekte Adresse deines Clusters
+const mongoURI = process.env.MONGO_URI || "mongodb+srv://office_db_user:20mussdaswirklichsein26@cluster0.iwrleno.mongodb.net/gipfelbuch?retryWrites=true&w=majority";
 
-if (!mongoURI) {
-    console.error("🔴 FEHLER: Keine MONGO_URI Umgebungsvariable in Render gefunden!");
-} else {
-    mongoose.connect(mongoURI, {
-        serverSelectionTimeoutMS: 30000, // Timeout auf 30 Sekunden erhöht, um Render-Lags abzufangen
-        socketTimeoutMS: 45000
-    })
-    .then(() => console.log("🟢 Erfolgreich mit MongoDB Atlas verbunden!"))
-    .catch(err => console.error("🔴 Verbindungsfehler zu MongoDB Atlas:", err.message));
-}
+mongoose.connect(mongoURI, {
+    serverSelectionTimeoutMS: 30000,
+    socketTimeoutMS: 45000
+})
+.then(() => console.log("🟢 Erfolgreich mit MongoDB Atlas verbunden!"))
+.catch(err => console.error("🔴 Verbindungsfehler zu MongoDB Atlas:", err.message));
 
 // ==========================================
 // 4. DATENBANK-SCHEMA & MODEL DEFINIEREN
@@ -101,23 +98,6 @@ app.post('/api/admin/eintraege', async (req, res) => {
         
         if (password !== getAdminPassword()) {
             return res.status(401).json({ error: "Falsches Passwort." });
-        }
-
-        // Sicherheitscheck: Warten, bis Mongoose bereit ist (max. 15 Sekunden)
-        if (mongoose.connection.readyState !== 1) {
-            await new Promise((resolve) => {
-                const checkInterval = setInterval(() => {
-                    if (mongoose.connection.readyState === 1) {
-                        clearInterval(checkInterval);
-                        resolve();
-                    }
-                }, 500);
-                // Nach 15 Sekunden abbrechen, falls keine Verbindung zustande kommt
-                setTimeout(() => {
-                    clearInterval(checkInterval);
-                    resolve();
-                }, 15000);
-            });
         }
 
         const eintraege = await Eintrag.find({}).sort({ datum: -1 });
