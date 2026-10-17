@@ -23,7 +23,6 @@
 
     <h1>🏔️ Gipfelbuch</h1>
 
-    <!-- Formular für neue Einträge -->
     <form id="eintragForm" onsubmit="eintragAbsenden(event)">
         <h2>Neuen Eintrag verfassen</h2>
         
@@ -33,21 +32,33 @@
         <label for="nachrichtInput">Nachricht:</label>
         <textarea id="nachrichtInput" rows="3" placeholder="Deine Nachricht vom Gipfel..."></textarea>
 
-        <label for="summitCodeInput">Sicherheitsfrage: Was ist 4 + 2?</label>
-        <input type="text" id="summitCodeInput" required placeholder="Ergebnis eingeben">
+        <!-- Dynamische Sicherheitsfrage -->
+        <label for="captchaInput" id="captchaLabel">Sicherheitsfrage: Lade Aufgabe...</label>
+        <input type="text" id="captchaInput" required placeholder="Ergebnis eingeben">
+        <input type="hidden" id="captchaToken">
 
-        <!-- Fehler- und Erfolgsmeldungen -->
         <div id="formularFehler" class="error-msg"></div>
         <div id="formularErfolg" class="success-msg"></div>
 
         <button type="submit">Eintrag abschicken</button>
     </form>
 
-    <!-- Liste der öffentlichen Einträge -->
     <h2>Gipfel-Einträge</h2>
     <div id="eintraegeListe">Lade Einträge...</div>
 
     <script>
+        // Neue Aufgabe vom Server laden
+        async function ladeNeuesCaptcha() {
+            try {
+                const response = await fetch('/api/captcha');
+                const data = await response.json();
+                document.getElementById('captchaLabel').textContent = `Sicherheitsfrage: ${data.frage}`;
+                document.getElementById('captchaToken').value = data.token;
+            } catch (err) {
+                console.error("Fehler beim Laden des Captchas:", err);
+            }
+        }
+
         async function ladeEintraege() {
             try {
                 const response = await fetch('/api/eintraege');
@@ -80,7 +91,8 @@
 
             const name = document.getElementById('nameInput').value;
             const nachricht = document.getElementById('nachrichtInput').value;
-            const summitCode = document.getElementById('summitCodeInput').value;
+            const captchaAnswer = document.getElementById('captchaInput').value;
+            const captchaToken = document.getElementById('captchaToken').value;
             
             const fehlerDiv = document.getElementById('formularFehler');
             const erfolgDiv = document.getElementById('formularErfolg');
@@ -92,20 +104,23 @@
                 const response = await fetch('/api/eintraege', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, nachricht, summitCode })
+                    body: JSON.stringify({ name, nachricht, captchaAnswer, captchaToken })
                 });
 
                 const result = await response.json();
 
                 if (!response.ok) {
+                    // Zeigt bei falschem Ergebnis "Bitte die korrekte Antwort eintragen."
                     fehlerDiv.textContent = result.error || "Ein Fehler ist aufgetreten.";
                     fehlerDiv.style.display = 'block';
+                    ladeNeuesCaptcha(); // Neue Aufgabe bei Fehler laden
                     return;
                 }
 
                 erfolgDiv.textContent = "Eintrag erfolgreich abgeschickt! Er wird nach Prüfung freigeschaltet.";
                 erfolgDiv.style.display = 'block';
                 document.getElementById('eintragForm').reset();
+                ladeNeuesCaptcha(); // Neue Aufgabe für nächsten Eintrag laden
                 ladeEintraege();
 
             } catch (err) {
@@ -119,6 +134,8 @@
             return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
 
+        // Beim ersten Laden beide Aufrufe ausführen
+        ladeNeuesCaptcha();
         ladeEintraege();
     </script>
 </body>
