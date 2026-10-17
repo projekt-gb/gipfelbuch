@@ -3,55 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gipfelbuch - Admin</title>
+    <title>Gipfelbuch - Admin Dashboard</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; padding: 20px; background-color: #f2f4f4; color: #333; }
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f2f4f4; color: #333; }
         h1, h2 { color: #2c3e50; }
-        .login-box, .admin-panel { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        input[type="password"] { padding: 8px; width: 60%; margin-right: 10px; border: 1px solid #ccc; border-radius: 4px; }
-        button { background-color: #e67e22; color: white; border: none; padding: 9px 15px; border-radius: 4px; cursor: pointer; }
+        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        
+        input[type="password"], select, input[type="date"] { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        input[type="password"] { width: 60%; margin-right: 10px; }
+        
+        button { background-color: #e67e22; color: white; border: none; padding: 9px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
         button:hover { background-color: #d35400; }
         .btn-green { background-color: #27ae60; }
         .btn-green:hover { background-color: #219653; }
         .btn-red { background-color: #c0392b; }
         .btn-red:hover { background-color: #a93226; }
+        .btn-secondary { background-color: #7f8c8d; }
+        .btn-secondary:hover { background-color: #6c7a7d; }
+
+        .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; background: #eaeded; padding: 12px; border-radius: 6px; margin-bottom: 15px; }
+        .batch-actions { display: flex; gap: 10px; margin-top: 10px; }
+
         .error-msg { color: #c0392b; margin-top: 10px; font-weight: bold; display: none; }
-        .eintrag-card { background: #fff; padding: 15px; border-radius: 6px; border-left: 5px solid #e67e22; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .eintrag-card { background: #fff; padding: 15px; border-radius: 6px; border-left: 5px solid #e67e22; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; gap: 15px; align-items: flex-start; }
         .eintrag-card.freigegeben { border-left-color: #27ae60; }
+        .eintrag-content { flex-grow: 1; }
+        
+        .checkbox-large { width: 20px; height: 20px; cursor: pointer; margin-top: 3px; }
         .hidden { display: none; }
     </style>
 </head>
 <body>
 
-    <h1>🛠️ Admin-Moderation</h1>
+    <h1>🛠️ WSV Kaltenbach-Ried - Admin Moderation</h1>
 
-    <!-- Login-Bereich -->
-    <div id="loginBox" class="login-box">
+    <!-- Login Box -->
+    <div id="loginBox" class="card">
         <h2>Passwort eingeben</h2>
         <input type="password" id="adminPassword" placeholder="Admin-Passwort">
         <button onclick="ladeAdminEintraege()">Einloggen</button>
         <div id="errorMessage" class="error-msg"></div>
     </div>
 
-    <!-- Admin-Bereich -->
-    <div id="adminPanel" class="admin-panel hidden">
-        <h2>Alle Einsendungen</h2>
+    <!-- Admin Panel -->
+    <div id="adminPanel" class="card hidden">
+        
+        <!-- Filter Bar -->
+        <div class="toolbar">
+            <div>
+                <label><strong>Status Filter:</strong></label>
+                <select id="statusFilter" onchange="filterAnwenden()">
+                    <option value="alle">Alle anzeigen</option>
+                    <option value="offen" selected>Nur Ausstehende (🔴)</option>
+                    <option value="freigegeben">Nur Freigegebene (🟢)</option>
+                </select>
+            </div>
+            <div>
+                <label><strong>Datum Tag:</strong></label>
+                <input type="date" id="datumFilter" onchange="filterAnwenden()">
+                <button class="btn-secondary" onclick="datumZuruecksetzen()">Alle Tage</button>
+            </div>
+        </div>
+
+        <!-- Multi-Select Control Bar -->
+        <div class="toolbar">
+            <div>
+                <input type="checkbox" id="selectAll" class="checkbox-large" onchange="toggleSelectAll(this)">
+                <label for="selectAll" style="display:inline; cursor:pointer;"><strong>Alle auswählen / abwählen</strong></label>
+            </div>
+            <div class="batch-actions">
+                <button class="btn-green" onclick="batchAktion('freischalten')">Selected freischalten</button>
+                <button class="btn-red" onclick="batchAktion('loeschen')">Selected löschen</button>
+            </div>
+        </div>
+
+        <h2>Einsendungen (<span id="eintraegeAuszahl">0</span>)</h2>
         <div id="adminEintraegeListe">Lade Daten...</div>
     </div>
 
     <script>
+        let alleEintraege = [];
+        let aktuellesPasswort = "";
+
         async function ladeAdminEintraege() {
-            const password = document.getElementById('adminPassword').value;
+            aktuellesPasswort = document.getElementById('adminPassword').value;
             const errorDiv = document.getElementById('errorMessage');
             
-            errorDiv.textContent = '';
             errorDiv.style.display = 'none';
 
             try {
                 const response = await fetch('/api/admin/eintraege', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password })
+                    body: JSON.stringify({ password: aktuellesPasswort })
                 });
 
                 const result = await response.json();
@@ -65,20 +109,48 @@
                 document.getElementById('loginBox').classList.add('hidden');
                 document.getElementById('adminPanel').classList.remove('hidden');
 
-                zeigeAdminEintraege(result, password);
+                alleEintraege = result;
+                filterAnwenden();
 
             } catch (err) {
-                console.error("Fehler:", err);
                 errorDiv.textContent = "Verbindungsfehler zum Server.";
                 errorDiv.style.display = 'block';
             }
         }
 
-        function zeigeAdminEintraege(eintraege, password) {
+        function filterAnwenden() {
+            const statusVal = document.getElementById('statusFilter').value;
+            const datumVal = document.getElementById('datumFilter').value; // Formatted YYYY-MM-DD
+
+            let gefiltert = alleEintraege.filter(e => {
+                // Status Filter
+                if (statusVal === 'offen' && e.freigegeben) return false;
+                if (statusVal === 'freigegeben' && !e.freigegeben) return false;
+
+                // Datum Filter (Tagweise)
+                if (datumVal) {
+                    const eintragTag = new Date(e.datum).toISOString().split('T')[0];
+                    if (eintragTag !== datumVal) return false;
+                }
+
+                return true;
+            });
+
+            zeigEintraege(gefiltert);
+        }
+
+        function datumZuruecksetzen() {
+            document.getElementById('datumFilter').value = '';
+            filterAnwenden();
+        }
+
+        function zeigEintraege(eintraege) {
             const listeDiv = document.getElementById('adminEintraegeListe');
-            
+            document.getElementById('eintraegeAuszahl').textContent = eintraege.length;
+            document.getElementById('selectAll').checked = false;
+
             if (eintraege.length === 0) {
-                listeDiv.innerHTML = '<p>Keine Einträge in der Datenbank.</p>';
+                listeDiv.innerHTML = '<p>Keine passenden Einträge gefunden.</p>';
                 return;
             }
 
@@ -86,33 +158,65 @@
             eintraege.forEach(e => {
                 const statusKlasse = e.freigegeben ? 'freigegeben' : '';
                 const statusText = e.freigegeben ? '🟢 Öffentlich' : '🔴 Ausstehend';
-                const datumFormatted = new Date(e.datum).toLocaleDateString('de-DE');
+                const datumFormatted = new Date(e.datum).toLocaleString('de-DE');
 
                 const div = document.createElement('div');
                 div.className = `eintrag-card ${statusKlasse}`;
                 div.innerHTML = `
-                    <strong>${escapeHtml(e.name)}</strong> (${datumFormatted}) - <em>${statusText}</em><br>
-                    <p>${escapeHtml(e.nachricht || 'Keine Nachricht')}</p>
-                    <small>Captcha-Ergebnis: ${e.summitCode}</small><br><br>
-                    ${!e.freigegeben ? `<button class="btn-green" onclick="statusAendern('${e._id}', 'freischalten', '${password}')">Freischalten</button>` : ''}
-                    <button class="btn-red" onclick="statusAendern('${e._id}', 'loeschen', '${password}')">Löschen</button>
+                    <input type="checkbox" class="eintrag-checkbox checkbox-large" value="${e._id}">
+                    <div class="eintrag-content">
+                        <strong>${escapeHtml(e.name)}</strong> <small>(${datumFormatted})</small> - <em>${statusText}</em><br>
+                        <p style="margin: 8px 0;">${escapeHtml(e.nachricht || 'Keine Nachricht')}</p>
+                        <div>
+                            ${!e.freigegeben ? `<button class="btn-green" onclick="einzelAktion('${e._id}', 'freischalten')">Freischalten</button>` : ''}
+                            <button class="btn-red" onclick="einzelAktion('${e._id}', 'loeschen')">Löschen</button>
+                        </div>
+                    </div>
                 `;
                 listeDiv.appendChild(div);
             });
         }
 
-        async function statusAendern(id, aktion, password) {
-            const endpoint = aktion === 'freischalten' ? '/api/admin/freischalten' : '/api/admin/loeschen';
+        function toggleSelectAll(master) {
+            const checkboxes = document.querySelectorAll('.eintrag-checkbox');
+            checkboxes.forEach(cb => cb.checked = master.checked);
+        }
 
+        function getAusgewaehlteIds() {
+            const checkboxes = document.querySelectorAll('.eintrag-checkbox:checked');
+            return Array.from(checkboxes).map(cb => cb.value);
+        }
+
+        async function einzelAktion(id, aktion) {
+            const endpoint = aktion === 'freischalten' ? '/api/admin/freischalten' : '/api/admin/loeschen';
+            await sendRequest(endpoint, { password: aktuellesPasswort, id });
+        }
+
+        async function batchAktion(aktion) {
+            const ids = getAusgewaehlteIds();
+            if (ids.length === 0) {
+                alert("Bitte wähle zuerst mindestens einen Eintrag über die Kontrollkästchen aus.");
+                return;
+            }
+
+            if (aktion === 'loeschen' && !confirm(`Möchtest du wirklich ${ids.length} Einträge unwiderruflich löschen?`)) {
+                return;
+            }
+
+            const endpoint = aktion === 'freischalten' ? '/api/admin/freischalten-batch' : '/api/admin/loeschen-batch';
+            await sendRequest(endpoint, { password: aktuellesPasswort, ids });
+        }
+
+        async function sendRequest(endpoint, bodyData) {
             try {
-                const response = await fetch(endpoint, {
+                const res = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password, id })
+                    body: JSON.stringify(bodyData)
                 });
 
-                if (response.ok) {
-                    ladeAdminEintraege();
+                if (res.ok) {
+                    ladeAdminEintraege(); // Neu laden
                 } else {
                     alert("Aktion fehlgeschlagen.");
                 }
@@ -122,7 +226,7 @@
         }
 
         function escapeHtml(str) {
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
     </script>
 </body>
