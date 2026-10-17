@@ -17,7 +17,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ==========================================
 // 3. MONGODB ATLAS VERBINDUNG
 // ==========================================
-// Hier verwenden wir genau die korrekte Adresse deines Clusters
 const mongoURI = process.env.MONGO_URI || "mongodb+srv://office_db_user:20mussdaswirklichsein26@cluster0.iwrleno.mongodb.net/gipfelbuch?retryWrites=true&w=majority";
 
 mongoose.connect(mongoURI, {
@@ -34,7 +33,6 @@ const gipfelEintragSchema = new mongoose.Schema({
     name: { type: String, required: true },
     nachricht: { type: String, default: '' },
     summitCode: { type: Number },
-    captchaAnswer: { type: Number },
     freigegeben: { type: Boolean, default: false },
     datum: { type: Date, default: Date.now }
 });
@@ -50,10 +48,12 @@ const getAdminPassword = () => process.env.ADMIN_PASSWORD || 'geheim123';
 // 6. ÖFFENTLICHE API-ROUTEN
 // ==========================================
 
+// HTML-Seite für den Admin-Bereich bereitstellen
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
+// Öffentliche (freigegebene) Einträge abrufen
 app.get('/api/eintraege', async (req, res) => {
     try {
         const eintraege = await Eintrag.find({ freigegeben: true }).sort({ datum: -1 });
@@ -64,19 +64,30 @@ app.get('/api/eintraege', async (req, res) => {
     }
 });
 
+// Neuen Eintrag hinzufügen (Mit strikter Prüfung auf die Rechenaufgabe: 4 + 2 = 6)
 app.post('/api/eintraege', async (req, res) => {
     try {
-        const { name, nachricht, summitCode, captchaAnswer } = req.body;
+        const { name, nachricht, summitCode } = req.body;
 
+        // Prüfen, ob der Name ausgefüllt wurde
         if (!name || name.trim() === "") {
             return res.status(400).json({ success: false, error: "Der Name darf nicht leer sein." });
         }
 
+        // Das korrekte Ergebnis der Rechenaufgabe (4 + 2 = 6)
+        const KORREKTES_ERGEBNIS = 6;
+        const eingegebeneAntwort = Number(summitCode);
+
+        // Strenge Überprüfung: Wenn das Ergebnis nicht 6 ist, abbrechen
+        if (!summitCode || isNaN(eingegebeneAntwort) || eingegebeneAntwort !== KORREKTES_ERGEBNIS) {
+            return res.status(400).json({ success: false, error: "Bitte die korrekte Antwort eintragen." });
+        }
+
+        // Neuen Eintrag speichern (startet standardmäßig auf freigegeben: false)
         const neuerEintrag = new Eintrag({
             name: name.trim(),
             nachricht: nachricht ? nachricht.trim() : '',
-            summitCode: summitCode ? Number(summitCode) : undefined,
-            captchaAnswer: captchaAnswer ? Number(captchaAnswer) : undefined,
+            summitCode: eingegebeneAntwort,
             freigegeben: false
         });
 
@@ -97,7 +108,7 @@ app.post('/api/admin/eintraege', async (req, res) => {
         const { password } = req.body;
         
         if (password !== getAdminPassword()) {
-            return res.status(401).json({ error: "Falsches Passwort." });
+            return res.status(401).json({ error: "Falsches Admin-Passwort!" });
         }
 
         const eintraege = await Eintrag.find({}).sort({ datum: -1 });
