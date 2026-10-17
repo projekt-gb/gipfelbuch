@@ -8,10 +8,11 @@ const path = require('path');
 const app = express();
 
 // ==========================================
-// 2. MIDDLEWARE CONFIGURATION
+// 2. MIDDLEWARE KONFIGURATION
 // ==========================================
+// Verarbeitet Formulardaten und JSON-Bodies aus Frontend-Anfragen (z.B. Fetch/POST)
 app.use(express.urlencoded({ extended: true }));
-app.use(express.json()); // WICHTIG: Damit JSON-Bodys (Passwörter) gelesen werden können
+app.use(express.json());
 
 // Statische Dateien (HTML, CSS, JS) aus dem 'public'-Ordner bereitstellen
 app.use(express.static(path.join(__dirname, 'public')));
@@ -22,7 +23,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 const mongoURI = process.env.MONGO_URI || '';
 
 if (!mongoURI) {
-    console.error("FEHLER: Keine MONGO_URI Umgebungsvariable in Render gefunden!");
+    console.error("🔴 FEHLER: Keine MONGO_URI Umgebungsvariable in Render gefunden!");
 } else {
     mongoose.connect(mongoURI, {
         serverSelectionTimeoutMS: 5000
@@ -43,39 +44,49 @@ const gipfelEintragSchema = new mongoose.Schema({
     datum: { type: Date, default: Date.now }
 });
 
+// Verknüpfung mit der MongoDB Collection 'eintraege'
 const Eintrag = mongoose.model('Eintrag', gipfelEintragSchema, 'eintraege');
 
 // ==========================================
-// 5. HILSFUNKTION FÜR DAS ADMIN-PASSWORT
+// 5. HILFSFUNKTION FÜR DAS ADMIN-PASSWORT
 // ==========================================
-// Nutzt Render-Variable oder standardmäßig 'geheim123'
+// Prüft die Umgebungsvariable ADMIN_PASSWORD; greift sonst auf Fallback 'geheim123' zurück
 const getAdminPassword = () => process.env.ADMIN_PASSWORD || 'geheim123';
 
 // ==========================================
 // 6. ROUTES (ENDPUNKTE)
 // ==========================================
 
-// Admin-Seite direkt aufrufen
+// EXPLICIT ROUTE: Admin-Seite direkt aufrufen
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-// GET: Öffentliche Einträge abrufen
+// GET: Öffentliche (freigegebene) Einträge abrufen
 app.get('/api/eintraege', async (req, res) => {
     try {
+        if (mongoose.connection.readyState !== 1) {
+            return res.status(500).json({ error: "Datenbankverbindung nicht bereit." });
+        }
         const eintraege = await Eintrag.find({ freigegeben: true }).sort({ datum: -1 });
         res.json(eintraege);
     } catch (err) {
+        console.error("Fehler beim Abrufen der öffentlichen Einträge:", err.message);
         res.status(500).json({ error: "Fehler beim Laden der Einträge." });
     }
 });
 
-// POST: Neuen Eintrag speichern
+// POST: Neuen Gipfelbucheintrag speichern
 app.post('/api/eintraege', async (req, res) => {
     try {
+        if (mongoose.connection.readyState !== 1) {
+            return res.status(500).json({ success: false, error: "Keine Verbindung zur Datenbank." });
+        }
+
         const { name, nachricht, summitCode, captchaAnswer } = req.body;
+
         if (!name || name.trim() === "") {
-            return res.status(400).json({ success: false, error: "Name darf nicht leer sein." });
+            return res.status(400).json({ success: false, error: "Der Name darf nicht leer sein." });
         }
 
         const neuerEintrag = new Eintrag({
@@ -83,12 +94,15 @@ app.post('/api/eintraege', async (req, res) => {
             nachricht: nachricht ? nachricht.trim() : '',
             summitCode: summitCode ? Number(summitCode) : undefined,
             captchaAnswer: captchaAnswer ? Number(captchaAnswer) : undefined,
-            freigegeben: false
+            freigegeben: false // Neue Einträge müssen erst vom Admin freigegeben werden
         });
 
         await neuerEintrag.save();
+        console.log("🟢 Neuer Eintrag erfolgreich gespeichert!");
+
         res.json({ success: true, message: "Eintrag erfolgreich gespeichert." });
     } catch (err) {
+        console.error("🔴 Fehler beim Speichern:", err.message);
         res.status(500).json({ success: false, error: err.message });
     }
 });
@@ -97,48 +111,64 @@ app.post('/api/eintraege', async (req, res) => {
 // ADMIN-MODERATIONS-ENDPUNKTE
 // ------------------------------------------
 
-// 1. Alle Einträge (öffentlich + ausstehend) für Admin laden
+// 1. Alle Einträge für den Admin-Bereich laden
 app.post('/api/admin/eintraege', async (req, res) => {
     try {
         const { password } = req.body;
+
+        // Passwort-Prüfung
         if (password !== getAdminPassword()) {
             return res.status(401).json({ error: "Falsches Passwort." });
         }
 
+        // Datenbank-Verbindungsprüfung
+        if (mongoose.connection.readyState !== 1) {
+            console.error("🔴 MongoDB ist nicht verbunden! Status:", mongoose.connection.readyState);
+            return res.status(500).json({ error: "Datenbank nicht bereit." });
+        }
+
+        // Alle Einträge abrufen (sowohl freigegebene als auch ausstehende)
         const eintraege = await Eintrag.find({}).sort({ datum: -1 });
         res.json(eintraege);
     } catch (err) {
-        res.status(500).json({ error: "Serverfehler." });
+        console.error("🔴 Fehler beim Laden der Admin-Einträge:", err.message);
+        res.status(500).json({ error: "Serverfehler: " + err.message });
     }
 });
 
-// 2. Eintrag freischalten
+// 2. Einen Eintrag freischalten
 app.post('/api/admin/freischalten', async (req, res) => {
     try {
         const { password, id } = req.body;
+
         if (password !== getAdminPassword()) {
             return res.status(401).json({ error: "Falsches Passwort." });
         }
 
         await Eintrag.findByIdAndUpdate(id, { freigegeben: true });
+        console.log(`🟢 Eintrag ${id} wurde freigegeben.`);
         res.json({ success: true });
     } catch (err) {
-        res.status(500).json({ error: "Serverfehler." });
+        console.error("Fehler beim Freischalten:", err.message);
+        res.status(500).json({ error: "Serverfehler beim Freischalten." });
     }
 });
 
-// 3. Eintrag löschen
+// 3. Einen Eintrag löschen
 app.post('/api/admin/loeschen', async (req, res) => {
     try {
         const { password, id } = req.body;
+
         if (password !== getAdminPassword()) {
             return res.status(401).json({ error: "Falsches Passwort." });
         }
 
         await Eintrag.findByIdAndDelete(id);
+        console.log(`🗑️ Eintrag ${id} wurde gelöscht.`);
         res.json({ success: true });
     } catch (err) {
-        res.status(500).json({ error: "Serverfehler." });
+        console.error("Fehler beim Löschen:", err.message);
+        res.status(500).json({ error: "Serverfehler beim Löschen." });
     }
 });
 
