@@ -3,139 +3,264 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gipfelbuch</title>
+    <title>Gipfelbuch am Gedrechter</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; color: #333; }
-        h1, h2 { color: #2c3e50; }
-        form { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background-color: #f4f7f6; 
+            color: #333; 
+        }
+        h1 { text-align: center; color: #2c3e50; }
+        .card { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+            margin-bottom: 20px; 
+        }
+        .info-box {
+            background-color: #e8f4f8;
+            border-left: 4px solid #2980b9;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            border-radius: 0 4px 4px 0;
+            font-size: 0.9em;
+            color: #2c3e50;
+        }
         label { display: block; margin-top: 10px; font-weight: bold; }
-        input[type="text"], textarea { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { background-color: #3498db; color: white; border: none; padding: 10px 15px; margin-top: 15px; border-radius: 4px; cursor: pointer; }
-        button:hover { background-color: #2980b9; }
-        .error-msg { color: #e74c3c; background: #fadbd8; padding: 10px; border-radius: 4px; margin-top: 10px; display: none; font-weight: bold; }
-        .success-msg { color: #27ae60; background: #d4efdf; padding: 10px; border-radius: 4px; margin-top: 10px; display: none; font-weight: bold; }
-        .eintrag { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 10px; }
-        .eintrag h3 { margin: 0 0 5px 0; color: #2980b9; }
-        .eintrag small { color: #7f8c8d; }
+        input, textarea, button { 
+            width: 100%; 
+            padding: 10px; 
+            margin-top: 5px; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+            box-sizing: border-box; 
+        }
+        .security-box {
+            background: #eef2f5;
+            padding: 12px;
+            border-radius: 4px;
+            margin-top: 15px;
+            border: 1px dashed #7f8c8d;
+        }
+        
+        button { 
+            background-color: #27ae60; 
+            color: white; 
+            border: none; 
+            font-weight: bold; 
+            margin-top: 15px; 
+            cursor: pointer; 
+            transition: background-color 0.3s ease;
+        }
+        button:hover { background-color: #219150; }
+
+        button:disabled, button.btn-disabled {
+            background-color: #bdc3c7 !important;
+            color: #7f8c8d;
+            cursor: not-allowed;
+        }
+
+        .status-message {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: none;
+            text-align: center;
+        }
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .preview-card {
+            background: #fdfefe;
+            border: 2px solid #27ae60;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+        .preview-title {
+            color: #27ae60;
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 8px;
+            border-bottom: 1px dashed #27ae60;
+            padding-bottom: 5px;
+        }
+
+        .eintrag { border-bottom: 1px solid #eee; padding: 10px 0; }
+        .eintrag-header { font-weight: bold; color: #2c3e50; }
+        .eintrag-datum { font-size: 0.8em; color: #7f8c8d; }
     </style>
 </head>
 <body>
 
-    <h1>🏔️ Gipfelbuch</h1>
+    <h1>🏔️ Gipfelbuch am Gedrechter</h1>
 
-    <form id="eintragForm" onsubmit="eintragAbsenden(event)">
-        <h2>Neuen Eintrag verfassen</h2>
+    <div class="card">
+        <h2>Mein Eintrag ins Gipfelbuch</h2>
         
-        <label for="nameInput">Name:</label>
-        <input type="text" id="nameInput" required placeholder="Dein Name">
+        <div class="info-box">
+            ℹ️ <strong>Hinweis:</strong> Jeder Eintrag wird vom Wintersportverein Kaltenbach-Ried geprüft und anschließend freigeschaltet. Datum und Uhrzeit wird vollautomatisch ergänzt.
+        </div>
 
-        <label for="nachrichtInput">Nachricht:</label>
-        <textarea id="nachrichtInput" rows="3" placeholder="Deine Nachricht vom Gipfel..."></textarea>
+        <form id="gipfelForm">
+            <label for="name">Dein Name / Team:</label>
+            <input type="text" id="name" name="name" placeholder="z. B. Anna & Lukas" required>
 
-        <!-- Dynamische Sicherheitsfrage -->
-        <label for="captchaInput" id="captchaLabel">Sicherheitsfrage: Lade Aufgabe...</label>
-        <input type="text" id="captchaInput" required placeholder="Ergebnis eingeben">
-        <input type="hidden" id="captchaToken">
+            <label for="nachricht">Deine Nachricht:</label>
+            <textarea id="nachricht" name="nachricht" rows="4" placeholder="Wetter, Aussicht, Tour..."></textarea>
 
-        <div id="formularFehler" class="error-msg"></div>
-        <div id="formularErfolg" class="success-msg"></div>
+            <div class="security-box">
+                <label for="summitCode">⛰️ Gipfel-Code (steht auf dem Zettel am Gipfelkreuz):</label>
+                <input type="number" id="summitCode" placeholder="z. B. Jahreszahl eingeben" required>
 
-        <button type="submit">Eintrag abschicken</button>
-    </form>
+                <label id="captchaLabel" for="captchaInput" style="margin-top: 12px;">Sicherheitsfrage:</label>
+                <input type="number" id="captchaInput" placeholder="Antwort eingeben" required>
+            </div>
 
-    <h2>Gipfel-Einträge</h2>
-    <div id="eintraegeListe">Lade Einträge...</div>
+            <button type="submit" id="submitBtn">Eintrag speichern</button>
+            
+            <div id="statusBox" class="status-message"></div>
+
+            <div id="meinEintragBox" class="preview-card">
+                <div class="preview-title">📌 Mein Gipfelbucheintrag:</div>
+                <div class="eintrag-header" id="previewName"></div>
+                <div class="eintrag-datum" id="previewDatum"></div>
+                <p id="previewText" style="margin-top: 8px; font-style: italic;"></p>
+            </div>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>Bisherige Einträge</h2>
+        <div id="eintraegeListe">Lade Einträge...</div>
+    </div>
 
     <script>
-        // Neue Aufgabe vom Server laden
-        async function ladeNeuesCaptcha() {
-            try {
-                const response = await fetch('/api/captcha');
-                const data = await response.json();
-                document.getElementById('captchaLabel').textContent = `Sicherheitsfrage: ${data.frage}`;
-                document.getElementById('captchaToken').value = data.token;
-            } catch (err) {
-                console.error("Fehler beim Laden des Captchas:", err);
-            }
+        let num1 = 0;
+        let num2 = 0;
+
+        function erstelleCaptcha() {
+            num1 = Math.floor(Math.random() * 9) + 1;
+            num2 = Math.floor(Math.random() * 9) + 1;
+            document.getElementById('captchaLabel').innerText = `Sicherheitsfrage: Was ist ${num1} + ${num2}?`;
+            document.getElementById('captchaInput').value = '';
+            document.getElementById('summitCode').value = '';
         }
 
         async function ladeEintraege() {
             try {
-                const response = await fetch('/api/eintraege');
-                const eintraege = await response.json();
+                const res = await fetch('/api/eintraege');
+                const eintraege = await res.json();
+                const liste = document.getElementById('eintraegeListe');
                 
-                const listeDiv = document.getElementById('eintraegeListe');
-                if (eintraege.length === 0) {
-                    listeDiv.innerHTML = '<p>Noch keine freigegebenen Einträge vorhanden.</p>';
+                if (!Array.isArray(eintraege) || eintraege.length === 0) {
+                    liste.innerHTML = '<p>Noch keine Einträge vorhanden. Sei der Erste!</p>';
                     return;
                 }
 
-                listeDiv.innerHTML = '';
-                eintraege.forEach(e => {
-                    const datumFormatted = new Date(e.datum).toLocaleDateString('de-DE');
-                    const div = document.createElement('div');
-                    div.className = 'eintrag';
-                    div.innerHTML = `
-                        <h3>${escapeHtml(e.name)} <small>(${datumFormatted})</small></h3>
+                liste.innerHTML = eintraege.map(e => `
+                    <div class="eintrag">
+                        <div class="eintrag-header">${escapeHtml(e.name)}</div>
+                        <div class="eintrag-datum">${new Date(e.datum).toLocaleString('de-DE')}</div>
                         <p>${escapeHtml(e.nachricht || '')}</p>
-                    `;
-                    listeDiv.appendChild(div);
-                });
+                    </div>
+                `).join('');
             } catch (err) {
-                console.error("Fehler beim Laden:", err);
+                document.getElementById('eintraegeListe').innerText = 'Fehler beim Laden der Einträge.';
             }
         }
 
-        async function eintragAbsenden(event) {
-            event.preventDefault();
-
-            const name = document.getElementById('nameInput').value;
-            const nachricht = document.getElementById('nachrichtInput').value;
-            const captchaAnswer = document.getElementById('captchaInput').value;
-            const captchaToken = document.getElementById('captchaToken').value;
+        document.getElementById('gipfelForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
             
-            const fehlerDiv = document.getElementById('formularFehler');
-            const erfolgDiv = document.getElementById('formularErfolg');
+            const submitBtn = document.getElementById('submitBtn');
+            const statusBox = document.getElementById('statusBox');
+            const meinEintragBox = document.getElementById('meinEintragBox');
+            
+            const name = document.getElementById('name').value;
+            const nachricht = document.getElementById('nachricht').value;
+            const summitCode = document.getElementById('summitCode').value;
+            const captchaAnswer = document.getElementById('captchaInput').value;
+            const expectedSum = num1 + num2;
 
-            fehlerDiv.style.display = 'none';
-            erfolgDiv.style.display = 'none';
+            submitBtn.disabled = true;
+            submitBtn.classList.add('btn-disabled');
+            submitBtn.innerText = 'Wird gesendet...';
+            
+            statusBox.style.display = 'none';
+            statusBox.className = 'status-message';
+            meinEintragBox.style.display = 'none';
 
             try {
-                const response = await fetch('/api/eintraege', {
+                const res = await fetch('/api/eintraege', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, nachricht, captchaAnswer, captchaToken })
+                    body: JSON.stringify({ 
+                        name: name, 
+                        nachricht: nachricht, 
+                        summitCode: parseInt(summitCode, 10),
+                        captchaAnswer: parseInt(captchaAnswer, 10), 
+                        captchaExpected: parseInt(expectedSum, 10) 
+                    })
                 });
 
-                const result = await response.json();
+                const data = await res.json();
 
-                if (!response.ok) {
-                    // Zeigt bei falschem Ergebnis "Bitte die korrekte Antwort eintragen."
-                    fehlerDiv.textContent = result.error || "Ein Fehler ist aufgetreten.";
-                    fehlerDiv.style.display = 'block';
-                    ladeNeuesCaptcha(); // Neue Aufgabe bei Fehler laden
-                    return;
+                if (res.ok && data.success) {
+                    document.getElementById('previewName').innerText = name;
+                    document.getElementById('previewDatum').innerText = new Date().toLocaleString('de-DE');
+                    document.getElementById('previewText').innerText = nachricht || '(Keine Nachricht eingegeben)';
+                    
+                    meinEintragBox.style.display = 'block';
+
+                    document.getElementById('name').value = '';
+                    document.getElementById('nachricht').value = '';
+                    
+                    statusBox.innerText = '✅ Vielen Dank! Dein Eintrag wurde abgesendet, wird vom Wintersportverein geprüft und anschließend freigeschaltet.';
+                    statusBox.classList.add('status-success');
+                    statusBox.style.display = 'block';
+
+                    erstelleCaptcha();
+                    ladeEintraege();
+                } else {
+                    statusBox.innerText = '❌ Fehler: ' + (data.error || 'Eintrag konnte nicht gespeichert werden.');
+                    statusBox.classList.add('status-error');
+                    statusBox.style.display = 'block';
+                    
+                    erstelleCaptcha();
                 }
-
-                erfolgDiv.textContent = "Eintrag erfolgreich abgeschickt! Er wird nach Prüfung freigeschaltet.";
-                erfolgDiv.style.display = 'block';
-                document.getElementById('eintragForm').reset();
-                ladeNeuesCaptcha(); // Neue Aufgabe für nächsten Eintrag laden
-                ladeEintraege();
-
             } catch (err) {
-                console.error("Netzwerkfehler:", err);
-                fehlerDiv.textContent = "Verbindung zum Server fehlgeschlagen.";
-                fehlerDiv.style.display = 'block';
+                statusBox.innerText = '❌ Netzwerkfehler beim Speichern. Bitte versuche es später erneut.';
+                statusBox.classList.add('status-error');
+                statusBox.style.display = 'block';
+            } finally {
+                setTimeout(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('btn-disabled');
+                    submitBtn.innerText = 'Eintrag speichern';
+                }, 3000);
             }
-        }
+        });
 
         function escapeHtml(str) {
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
         }
 
-        // Beim ersten Laden beide Aufrufe ausführen
-        ladeNeuesCaptcha();
+        erstelleCaptcha();
         ladeEintraege();
     </script>
 </body>
