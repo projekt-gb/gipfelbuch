@@ -4,8 +4,12 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
+const crypto = require('crypto'); // Für sichere Captcha-Tokens
 
 const app = express();
+
+// Secret Key für die Entschlüsselung/Signierung des Captchas
+const CAPTCHA_SECRET = process.env.CAPTCHA_SECRET || 'gipfelbuch_geheim_key_2026';
 
 // ==========================================
 // 2. MIDDLEWARE KONFIGURATION
@@ -32,7 +36,6 @@ mongoose.connect(mongoURI, {
 const gipfelEintragSchema = new mongoose.Schema({
     name: { type: String, required: true },
     nachricht: { type: String, default: '' },
-    summitCode: { type: Number },
     freigegeben: { type: Boolean, default: false },
     datum: { type: Date, default: Date.now }
 });
@@ -40,20 +43,61 @@ const gipfelEintragSchema = new mongoose.Schema({
 const Eintrag = mongoose.model('Eintrag', gipfelEintragSchema, 'eintraege');
 
 // ==========================================
-// 5. HILFSFUNKTION FÜR DAS ADMIN-PASSWORT
+// 5. HILFSFUNKTIONEN
 // ==========================================
 const getAdminPassword = () => process.env.ADMIN_PASSWORD || 'geheim123';
+
+// Erstellt ein signiertes Token aus der korrekten Lösung
+function erstelleCaptchaToken(loesung) {
+    const payload = `${loesung}:${Date.now()}`;
+    const hmac = crypto.createHmac('sha256', CAPTCHA_SECRET).update(payload).digest('hex');
+    return Buffer.from(`${payload}:${hmac}`).toString('base64');
+}
+
+// Prüft, ob die eingegebene Antwort zum Token passt
+function pruefeCaptchaToken(token, eingabe) {
+    try {
+        const decoded = Buffer.from(token, 'base64').toString('utf8');
+        const [loesung, timestamp, hmac] = decoded.split(':');
+
+        // Token-Gültigkeit (z. B. max. 10 Minuten alt)
+        if (Date.now() - Number(timestamp) > 10 * 60 * 1000) {
+            return false;
+        }
+
+        const erwarteterHmac = crypto.createHmac('sha256', CAPTCHA_SECRET).update(`${loesung}:${timestamp}`).digest('hex');
+        if (hmac !== erwarteterHmac) {
+            return false;
+        }
+
+        return Number(loesung) === Number(eingabe);
+    } catch (e) {
+        return false;
+    }
+}
 
 // ==========================================
 // 6. ÖFFENTLICHE API-ROUTEN
 // ==========================================
 
-// HTML-Seite für den Admin-Bereich bereitstellen
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-// Öffentliche (freigegebene) Einträge abrufen
+// Neue Route: Generiert wechselnde Rechenaufgaben
+app.get('/api/captcha', (req, res) => {
+    const num1 = Math.floor(Math.random() * 10) + 1; // Zahl zwischen 1 und 10
+    const num2 = Math.floor(Math.random() * 10) + 1;
+    const istPlus = Math.random() > 0.5;
+
+    const frage = istPlus ? `Was ist ${num1} + ${num2}?` : `Was ist ${num1 + num2} - ${num2}?`;
+    const loesung = istPlus ? (num1 + num2) : num1;
+
+    const token = erstelleCaptchaToken(loesung);
+    res.json({ frage, token });
+});
+
+// Öffentliche Einträge abrufen
 app.get('/api/eintraege', async (req, res) => {
     try {
         const eintraege = await Eintrag.find({ freigegeben: true }).sort({ datum: -1 });
@@ -64,30 +108,23 @@ app.get('/api/eintraege', async (req, res) => {
     }
 });
 
-// Neuen Eintrag hinzufügen (Mit strikter Prüfung auf die Rechenaufgabe: 4 + 2 = 6)
+// Neuen Eintrag hinzufügen mit dynamischer Captcha-Prüfung
 app.post('/api/eintraege', async (req, res) => {
     try {
-        const { name, nachricht, summitCode } = req.body;
+        const { name, nachricht, captchaAnswer, captchaToken } = req.body;
 
-        // Prüfen, ob der Name ausgefüllt wurde
         if (!name || name.trim() === "") {
             return res.status(400).json({ success: false, error: "Der Name darf nicht leer sein." });
         }
 
-        // Das korrekte Ergebnis der Rechenaufgabe (4 + 2 = 6)
-        const KORREKTES_ERGEBNIS = 6;
-        const eingegebeneAntwort = Number(summitCode);
-
-        // Strenge Überprüfung: Wenn das Ergebnis nicht 6 ist, abbrechen
-        if (!summitCode || isNaN(eingegebeneAntwort) || eingegebeneAntwort !== KORREKTES_ERGEBNIS) {
+        // Strenge Prüfung des wechselnden Captchas
+        if (!captchaToken || !captchaAnswer || !pruefeCaptchaToken(captchaToken, captchaAnswer)) {
             return res.status(400).json({ success: false, error: "Bitte die korrekte Antwort eintragen." });
         }
 
-        // Neuen Eintrag speichern (startet standardmäßig auf freigegeben: false)
         const neuerEintrag = new Eintrag({
             name: name.trim(),
             nachricht: nachricht ? nachricht.trim() : '',
-            summitCode: eingegebeneAntwort,
             freigegeben: false
         });
 
@@ -106,15 +143,12 @@ app.post('/api/eintraege', async (req, res) => {
 app.post('/api/admin/eintraege', async (req, res) => {
     try {
         const { password } = req.body;
-        
         if (password !== getAdminPassword()) {
             return res.status(401).json({ error: "Falsches Admin-Passwort!" });
         }
-
         const eintraege = await Eintrag.find({}).sort({ datum: -1 });
         res.json(eintraege);
     } catch (err) {
-        console.error("Fehler beim Laden der Admin-Einträge:", err.message);
         res.status(500).json({ error: "Serverfehler: " + err.message });
     }
 });
@@ -125,11 +159,9 @@ app.post('/api/admin/freischalten', async (req, res) => {
         if (password !== getAdminPassword()) {
             return res.status(401).json({ error: "Falsches Passwort." });
         }
-
         await Eintrag.findByIdAndUpdate(id, { freigegeben: true });
         res.json({ success: true });
     } catch (err) {
-        console.error("Fehler beim Freischalten:", err.message);
         res.status(500).json({ error: "Serverfehler beim Freischalten." });
     }
 });
@@ -140,11 +172,9 @@ app.post('/api/admin/loeschen', async (req, res) => {
         if (password !== getAdminPassword()) {
             return res.status(401).json({ error: "Falsches Passwort." });
         }
-
         await Eintrag.findByIdAndDelete(id);
         res.json({ success: true });
     } catch (err) {
-        console.error("Fehler beim Löschen:", err.message);
         res.status(500).json({ error: "Serverfehler beim Löschen." });
     }
 });
