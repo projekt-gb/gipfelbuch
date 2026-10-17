@@ -10,15 +10,12 @@ const app = express();
 // ==========================================
 // 2. MIDDLEWARE KONFIGURATION
 // ==========================================
-// Parsing von URL-encoded Formulardaten und JSON-Objekten
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
-// Statische Dateien (HTML, CSS, Frontend-JS) aus dem Ordner 'public' bereitstellen
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ==========================================
-// 3. MONGODB ATLAS VERBINDUNG
+// 3. MONGODB ATLAS VERBINDUNG (Timeout erhöht)
 // ==========================================
 const mongoURI = process.env.MONGO_URI || '';
 
@@ -26,7 +23,8 @@ if (!mongoURI) {
     console.error("🔴 FEHLER: Keine MONGO_URI Umgebungsvariable in Render gefunden!");
 } else {
     mongoose.connect(mongoURI, {
-        serverSelectionTimeoutMS: 10000 // Maximale Wartezeit für den Verbindungsaufbau: 10 Sekunden
+        serverSelectionTimeoutMS: 30000, // Timeout auf 30 Sekunden erhöht, um Render-Lags abzufangen
+        socketTimeoutMS: 45000
     })
     .then(() => console.log("🟢 Erfolgreich mit MongoDB Atlas verbunden!"))
     .catch(err => console.error("🔴 Verbindungsfehler zu MongoDB Atlas:", err.message));
@@ -35,35 +33,30 @@ if (!mongoURI) {
 // ==========================================
 // 4. DATENBANK-SCHEMA & MODEL DEFINIEREN
 // ==========================================
-// Schema definiert die Struktur eines Gipfelbuch-Eintrags
 const gipfelEintragSchema = new mongoose.Schema({
     name: { type: String, required: true },
     nachricht: { type: String, default: '' },
     summitCode: { type: Number },
     captchaAnswer: { type: Number },
-    freigegeben: { type: Boolean, default: false }, // Neue Einträge müssen erst vom Admin freigeschaltet werden
+    freigegeben: { type: Boolean, default: false },
     datum: { type: Date, default: Date.now }
 });
 
-// Verknüpfung des Schemas mit der MongoDB Collection 'eintraege'
 const Eintrag = mongoose.model('Eintrag', gipfelEintragSchema, 'eintraege');
 
 // ==========================================
 // 5. HILFSFUNKTION FÜR DAS ADMIN-PASSWORT
 // ==========================================
-// Nutzt die Render-Umgebungsvariable ADMIN_PASSWORD oder standardmäßig 'geheim123'
 const getAdminPassword = () => process.env.ADMIN_PASSWORD || 'geheim123';
 
 // ==========================================
 // 6. ÖFFENTLICHE API-ROUTEN
 // ==========================================
 
-// HTML-Route für die Admin-Oberfläche
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-// GET: Lädt alle freigegebenen Einträge für die öffentliche Webseite
 app.get('/api/eintraege', async (req, res) => {
     try {
         const eintraege = await Eintrag.find({ freigegeben: true }).sort({ datum: -1 });
@@ -74,7 +67,6 @@ app.get('/api/eintraege', async (req, res) => {
     }
 });
 
-// POST: Speichert einen neuen Eintrag im Gipfelbuch (wartet auf Freigabe)
 app.post('/api/eintraege', async (req, res) => {
     try {
         const { name, nachricht, summitCode, captchaAnswer } = req.body;
@@ -92,10 +84,9 @@ app.post('/api/eintraege', async (req, res) => {
         });
 
         await neuerEintrag.save();
-        console.log("🟢 Neuer Eintrag erfolgreich gespeichert!");
-        res.json({ success: true, message: "Eintrag erfolgreich gespeichert. Er wird nach Prüfung freigeschaltet." });
+        res.json({ success: true, message: "Eintrag erfolgreich gespeichert." });
     } catch (err) {
-        console.error("🔴 Fehler beim Speichern des Eintrags:", err.message);
+        console.error("🔴 Fehler beim Speichern:", err.message);
         res.status(500).json({ success: false, error: err.message });
     }
 });
@@ -104,13 +95,29 @@ app.post('/api/eintraege', async (req, res) => {
 // 7. ADMIN-MODERATIONS-ROUTEN
 // ==========================================
 
-// POST: Lädt alle Einträge (sowohl freigegebene als auch ausstehende) für das Admin-Dashboard
 app.post('/api/admin/eintraege', async (req, res) => {
     try {
         const { password } = req.body;
         
         if (password !== getAdminPassword()) {
             return res.status(401).json({ error: "Falsches Passwort." });
+        }
+
+        // Sicherheitscheck: Warten, bis Mongoose bereit ist (max. 15 Sekunden)
+        if (mongoose.connection.readyState !== 1) {
+            await new Promise((resolve) => {
+                const checkInterval = setInterval(() => {
+                    if (mongoose.connection.readyState === 1) {
+                        clearInterval(checkInterval);
+                        resolve();
+                    }
+                }, 500);
+                // Nach 15 Sekunden abbrechen, falls keine Verbindung zustande kommt
+                setTimeout(() => {
+                    clearInterval(checkInterval);
+                    resolve();
+                }, 15000);
+            });
         }
 
         const eintraege = await Eintrag.find({}).sort({ datum: -1 });
@@ -121,17 +128,14 @@ app.post('/api/admin/eintraege', async (req, res) => {
     }
 });
 
-// POST: Schaltet einen Eintrag anhand seiner ID frei
 app.post('/api/admin/freischalten', async (req, res) => {
     try {
         const { password, id } = req.body;
-        
         if (password !== getAdminPassword()) {
             return res.status(401).json({ error: "Falsches Passwort." });
         }
 
         await Eintrag.findByIdAndUpdate(id, { freigegeben: true });
-        console.log(`🟢 Eintrag ${id} wurde freigegeben.`);
         res.json({ success: true });
     } catch (err) {
         console.error("Fehler beim Freischalten:", err.message);
@@ -139,17 +143,14 @@ app.post('/api/admin/freischalten', async (req, res) => {
     }
 });
 
-// POST: Löscht einen Eintrag anhand seiner ID
 app.post('/api/admin/loeschen', async (req, res) => {
     try {
         const { password, id } = req.body;
-        
         if (password !== getAdminPassword()) {
             return res.status(401).json({ error: "Falsches Passwort." });
         }
 
         await Eintrag.findByIdAndDelete(id);
-        console.log(`🗑️ Eintrag ${id} wurde gelöscht.`);
         res.json({ success: true });
     } catch (err) {
         console.error("Fehler beim Löschen:", err.message);
