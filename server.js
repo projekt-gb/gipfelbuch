@@ -29,7 +29,7 @@ mongoose.connect(mongoURI, {
     socketTimeoutMS: 45000,          // 45 Sekunden Socket-Timeout
     family: 4,                       // Erzwingt IPv4 für stabile Cloud-Verbindungen
     bufferCommands: true,            // Erlaubt das Puffer von Befehlen
-    bufferTimeoutMS: 45000           // 🟢 Erhöht den Puffer-Timeout auf 45s (behebt den 10000ms insertOne Fehler)
+    bufferTimeoutMS: 45000           // Erhöht den Puffer-Timeout auf 45s (verhindert Timeout-Fehler)
 })
 .then(() => console.log("🟢 Erfolgreich mit MongoDB Atlas verbunden!"))
 .catch(err => console.error("🔴 Verbindungsfehler zu MongoDB Atlas:", err.message));
@@ -81,7 +81,7 @@ app.get('/api/eintraege', async (req, res) => {
     }
 });
 
-// Neuen Eintrag speichern (Inkl. doppelter Sicherheitsprüfung: 1961 + Rechenaufgabe)
+// Neuen Eintrag speichern (Inkl. robuster Fehlerbehandlung bei Tippfehlern)
 app.post('/api/eintraege', async (req, res) => {
     try {
         const { name, nachricht, summitCode, captchaAnswer, captchaExpected } = req.body;
@@ -96,7 +96,7 @@ app.post('/api/eintraege', async (req, res) => {
         const eingetragenesJahr = parseInt(summitCode, 10);
 
         if (isNaN(eingetragenesJahr) || eingetragenesJahr !== KORREKTES_JAHR) {
-            return res.status(400).json({ success: false, error: "Bitte die korrekte Antwort eintragen." });
+            return res.status(400).json({ success: false, error: "Falscher Gipfel-Code eingetragen." });
         }
 
         // 3. Prüfung 2: Dynamische Rechenaufgabe im Formular
@@ -104,7 +104,7 @@ app.post('/api/eintraege', async (req, res) => {
         const erww = parseInt(captchaExpected, 10);
 
         if (isNaN(antw) || isNaN(erww) || antw !== erww) {
-            return res.status(400).json({ success: false, error: "Bitte die korrekte Antwort eintragen." });
+            return res.status(400).json({ success: false, error: "Sicherheitsfrage wurde falsch beantwortet." });
         }
 
         // 4. In MongoDB speichern
@@ -120,12 +120,12 @@ app.post('/api/eintraege', async (req, res) => {
 
     } catch (err) {
         console.error("🔴 Fehler beim Speichern:", err.message);
-        res.status(500).json({ success: false, error: err.message });
+        res.status(500).json({ success: false, error: "Ein unerwarteter Serverfehler ist aufgetreten." });
     }
 });
 
 // ==========================================
-// 7. ADMIN-MODERATIONS-ROUTEN (Inkl. Batch-Funktionen & Diagnose)
+// 7. ADMIN-MODERATIONS-ROUTEN
 // ==========================================
 
 // Alle Einträge (auch ausstehende) für das Dashboard laden
