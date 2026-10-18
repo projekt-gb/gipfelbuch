@@ -15,10 +15,8 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ==========================================
-// 3. MONGODB ATLAS VERBINDUNG (SICHER)
+// 3. MONGODB ATLAS VERBINDUNG (ROBUST & SICHER)
 // ==========================================
-// Die Verbindung wird hier ausschließlich über die Umgebungsvariable geladen,
-// damit keine Zugangsdaten versehentlich im öffentlichen Code landen.
 const mongoURI = process.env.MONGO_URI;
 
 if (!mongoURI) {
@@ -27,8 +25,9 @@ if (!mongoURI) {
 }
 
 mongoose.connect(mongoURI, {
-    serverSelectionTimeoutMS: 30000,
-    socketTimeoutMS: 45000
+    serverSelectionTimeoutMS: 15000,
+    socketTimeoutMS: 45000,
+    family: 4 // Erzwingt IPv4 für eine stabile Verbindung in Cloud-Umgebungen wie Render
 })
 .then(() => console.log("🟢 Erfolgreich mit MongoDB Atlas verbunden!"))
 .catch(err => console.error("🔴 Verbindungsfehler zu MongoDB Atlas:", err.message));
