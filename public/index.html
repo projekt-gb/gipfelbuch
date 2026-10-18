@@ -205,20 +205,36 @@
             statusBox.className = 'status-message';
             meinEintragBox.style.display = 'none';
 
-            try {
-                const res = await fetch('/api/eintraege', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        name: name, 
-                        nachricht: nachricht, 
-                        summitCode: parseInt(summitCode, 10),
-                        captchaAnswer: parseInt(captchaAnswer, 10), 
-                        captchaExpected: parseInt(expectedSum, 10) 
-                    })
-                });
+try {
+    const res = await fetch('/api/eintraege', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            name: name, 
+            nachricht: nachricht, 
+            summitCode: parseInt(summitCode, 10),
+            captchaAnswer: parseInt(captchaAnswer, 10), 
+            captchaExpected: parseInt(expectedSum, 10) 
+        })
+    });
 
-                const data = await res.json();
+    // 🟢 UNBEDINGT BEHALTEN: Liest die Server-Antwort im JSON-Format aus
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+        // Erfolgsfall: Nachricht anzeigen, Formular zurücksetzen etc.
+        // ... (dein bestehender Code hier)
+    } else {
+        // Fehlerfall vom Server (z.B. falsches Captcha oder 400 Bad Request)
+        // ... (dein bestehender Code hier)
+    }
+
+} catch (err) {
+    // 🟢 WICHTIG: Dieser Block schließt den try-Block ab! 
+    // Er fängt Netzwerkfehler ab, damit die Anwendung nicht abstürzt.
+    console.error("Netzwerkfehler:", err);
+}
+
 
                 if (res.ok && data.success) {
                     document.getElementById('previewName').innerText = name;
