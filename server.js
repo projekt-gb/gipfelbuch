@@ -1,3 +1,6 @@
+Sehr gerne! Hier ist die vollständige, optimierte server.js-Datei für dein Gipfelbuch-Projekt. Sie enthält den neuen, besonders stabilen Verbindungsblock (mit erhöhtem Timeout von 30 Sekunden gegen den Admin-Timeout-Fehler), die sichere Einbindung über die Umgebungsvariable sowie sämtliche Routen und Batch-Funktionen:
+
+JavaScript
 // ==========================================
 // 1. BENÖTIGTE MODULE IMPORTIEREN
 // ==========================================
@@ -15,7 +18,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ==========================================
-// 3. MONGODB ATLAS VERBINDUNG (ROBUST & SICHER)
+// 3. MONGODB ATLAS VERBINDUNG (ULTRA-STABIL & SICHER)
 // ==========================================
 const mongoURI = process.env.MONGO_URI;
 
@@ -25,12 +28,22 @@ if (!mongoURI) {
 }
 
 mongoose.connect(mongoURI, {
-    serverSelectionTimeoutMS: 15000,
+    serverSelectionTimeoutMS: 30000, // 30 Sekunden Timeout (schützt vor Cold-Start-Timeouts auf Render)
     socketTimeoutMS: 45000,
-    family: 4 // Erzwingt IPv4 für eine stabile Verbindung in Cloud-Umgebungen wie Render
+    family: 4,                      // Erzwingt IPv4 für stabile Cloud-Verbindungen
+    bufferCommands: true            // Puffert Befehle, falls die Verbindung beim Aufwachen kurz braucht
 })
 .then(() => console.log("🟢 Erfolgreich mit MongoDB Atlas verbunden!"))
 .catch(err => console.error("🔴 Verbindungsfehler zu MongoDB Atlas:", err.message));
+
+// Verbindungsüberwachung zur Fehlererkennung in den Logs
+mongoose.connection.on('disconnected', () => {
+    console.warn("⚠️ Verbindung zu MongoDB Atlas getrennt. Versuche erneut zu verbinden...");
+});
+
+mongoose.connection.on('error', (err) => {
+    console.error("🔴 MongoDB-Verbindungsfehler:", err);
+});
 
 // ==========================================
 // 4. DATENBANK-SCHEMA & MODEL DEFINIEREN
