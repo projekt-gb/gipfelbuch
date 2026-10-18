@@ -25,10 +25,11 @@ if (!mongoURI) {
 }
 
 mongoose.connect(mongoURI, {
-    serverSelectionTimeoutMS: 30000, // 30 Sekunden Timeout (schützt vor Cold-Start-Timeouts auf Render)
-    socketTimeoutMS: 45000,
-    family: 4,                      // Erzwingt IPv4 für stabile Cloud-Verbindungen
-    bufferCommands: true            // Puffert Befehle, falls die Verbindung beim Aufwachen kurz braucht
+    serverSelectionTimeoutMS: 30000, // 30 Sekunden für die Serverwahl
+    socketTimeoutMS: 45000,          // 45 Sekunden Socket-Timeout
+    family: 4,                       // Erzwingt IPv4 für stabile Cloud-Verbindungen
+    bufferCommands: true,            // Erlaubt das Puffer von Befehlen
+    bufferTimeoutMS: 45000           // 🟢 Erhöht den Puffer-Timeout auf 45s (behebt den 10000ms insertOne Fehler)
 })
 .then(() => console.log("🟢 Erfolgreich mit MongoDB Atlas verbunden!"))
 .catch(err => console.error("🔴 Verbindungsfehler zu MongoDB Atlas:", err.message));
@@ -130,21 +131,17 @@ app.post('/api/eintraege', async (req, res) => {
 // Alle Einträge (auch ausstehende) für das Dashboard laden
 app.post('/api/admin/eintraege', async (req, res) => {
     try {
-        console.log("📥 Admin-Anfrage empfangen. Body:", req.body);
         const { password } = req.body;
-        
         const aktivesPasswort = getAdminPassword();
 
         if (password !== aktivesPasswort) {
-            console.warn("⚠️ Falsches Admin-Passwort eingegeben!");
             return res.status(401).json({ error: "Falsches Admin-Passwort!" });
         }
 
         const eintraege = await Eintrag.find({}).sort({ datum: -1 });
-        console.log(`✅ ${eintraege.length} Einträge erfolgreich für Admin geladen.`);
         res.json(eintraege);
     } catch (err) {
-        console.error("🔴 DETAILLIERTER SERVERFEHLER beim Laden der Admin-Einträge:", err);
+        console.error("🔴 Fehler beim Laden der Admin-Einträge:", err);
         res.status(500).json({ error: "Serverfehler: " + err.message });
     }
 });
