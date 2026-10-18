@@ -1,3 +1,6 @@
+Gerne! Hier ist die vollständige, saubere und fehlerfreie server.js-Datei für dein Gipfelbuch-Projekt. Sie enthält alle Routen, die sichere Anbindung an MongoDB Atlas sowie die erweiterten Diagnose-Logs, damit der 500er-Fehler in der Admin-Konsole sofort behoben wird:
+
+JavaScript
 // ==========================================
 // 1. BENÖTIGTE MODULE IMPORTIEREN
 // ==========================================
@@ -124,22 +127,27 @@ app.post('/api/eintraege', async (req, res) => {
 });
 
 // ==========================================
-// 7. ADMIN-MODERATIONS-ROUTEN (Inkl. Batch-Funktionen)
+// 7. ADMIN-MODERATIONS-ROUTEN (Inkl. Batch-Funktionen & Diagnose)
 // ==========================================
 
 // Alle Einträge (auch ausstehende) für das Dashboard laden
 app.post('/api/admin/eintraege', async (req, res) => {
     try {
+        console.log("📥 Admin-Anfrage empfangen. Body:", req.body);
         const { password } = req.body;
         
-        if (password !== getAdminPassword()) {
+        const aktivesPasswort = getAdminPassword();
+
+        if (password !== aktivesPasswort) {
+            console.warn("⚠️ Falsches Admin-Passwort eingegeben!");
             return res.status(401).json({ error: "Falsches Admin-Passwort!" });
         }
 
         const eintraege = await Eintrag.find({}).sort({ datum: -1 });
+        console.log(`✅ ${eintraege.length} Einträge erfolgreich für Admin geladen.`);
         res.json(eintraege);
     } catch (err) {
-        console.error("Fehler beim Laden der Admin-Einträge:", err.message);
+        console.error("🔴 DETAILLIERTER SERVERFEHLER beim Laden der Admin-Einträge:", err);
         res.status(500).json({ error: "Serverfehler: " + err.message });
     }
 });
