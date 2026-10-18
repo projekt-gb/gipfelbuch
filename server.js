@@ -1,6 +1,3 @@
-Gerne! Hier ist die vollständige, saubere und fehlerfreie server.js-Datei für dein Gipfelbuch-Projekt. Sie enthält alle Routen, die sichere Anbindung an MongoDB Atlas sowie die erweiterten Diagnose-Logs, damit der 500er-Fehler in der Admin-Konsole sofort behoben wird:
-
-JavaScript
 // ==========================================
 // 1. BENÖTIGTE MODULE IMPORTIEREN
 // ==========================================
