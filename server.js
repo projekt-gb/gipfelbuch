@@ -1,6 +1,3 @@
-Sehr gerne! Hier ist die vollständige, optimierte server.js-Datei für dein Gipfelbuch-Projekt. Sie enthält den neuen, besonders stabilen Verbindungsblock (mit erhöhtem Timeout von 30 Sekunden gegen den Admin-Timeout-Fehler), die sichere Einbindung über die Umgebungsvariable sowie sämtliche Routen und Batch-Funktionen:
-
-JavaScript
 // ==========================================
 // 1. BENÖTIGTE MODULE IMPORTIEREN
 // ==========================================
