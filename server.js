@@ -15,10 +15,16 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ==========================================
-// 3. MONGODB ATLAS VERBINDUNG
+// 3. MONGODB ATLAS VERBINDUNG (SICHER)
 // ==========================================
-// Nutzt die Umgebungsvariable MONGO_URI oder den direkten Verbindungsstring als Fallback
-const mongoURI = process.env.MONGO_URI || "mongodb+srv://office_db_user:20mussdaswirklichsein26@cluster0.iwrleno.mongodb.net/gipfelbuch?retryWrites=true&w=majority";
+// Die Verbindung wird hier ausschließlich über die Umgebungsvariable geladen,
+// damit keine Zugangsdaten versehentlich im öffentlichen Code landen.
+const mongoURI = process.env.MONGO_URI;
+
+if (!mongoURI) {
+    console.error("🔴 Fehler: MONGO_URI ist nicht in den Umgebungsvariablen definiert!");
+    process.exit(1);
+}
 
 mongoose.connect(mongoURI, {
     serverSelectionTimeoutMS: 30000,
@@ -75,7 +81,7 @@ app.post('/api/eintraege', async (req, res) => {
             return res.status(400).json({ success: false, error: "Der Name darf nicht leer sein." });
         }
 
-        // 2. Prüfung 1: Gipfel-Code muss exakt 1961 sein
+        // 2. Prüfung 1: Gipfel-Code muss exakt das Jahr 1961 sein
         const KORREKTES_JAHR = 1961;
         const eingetragenesJahr = parseInt(summitCode, 10);
 
