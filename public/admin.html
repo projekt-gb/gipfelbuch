@@ -383,6 +383,18 @@
             overflow-wrap: anywhere;
         }
 
+        .moderation-alert {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 5px 11px;
+            border-radius: 6px;
+            background: #f9ebe9;
+            border: 1px solid #e4b9b4;
+            color: var(--crimson);
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
         .card-actions {
             display: flex;
             gap: 8px;
@@ -601,8 +613,11 @@
             eintraege.forEach(e => {
                 const statusKlasse = e.freigegeben ? 'freigegeben' : '';
                 const pillKlasse = e.freigegeben ? 'approved' : 'pending';
-                const statusText = e.freigegeben ? 'Öffentlich' : 'Ausstehend';
+                const statusText = e.freigegeben ? 'Öffentlich' : 'Prüfung erforderlich';
                 const datumFormatted = formatDatum(e.datum);
+                const grundHinweis = (!e.freigegeben && e.moderationsGrund)
+                    ? `<div class="moderation-alert">Automatischer Filter: ${escapeHtml(e.moderationsGrund)}</div>`
+                    : '';
 
                 const div = document.createElement('div');
                 div.className = `eintrag-card ${statusKlasse}`;
@@ -614,9 +629,10 @@
                             <span class="eintrag-date">${escapeHtml(datumFormatted)}</span>
                             <span class="status-pill ${pillKlasse}">${statusText}</span>
                         </div>
+                        ${grundHinweis}
                         <p class="eintrag-message">${escapeHtml(e.nachricht || 'Keine Nachricht angegeben')}</p>
                         <div class="card-actions">
-                            ${!e.freigegeben ? `<button class="btn-green" onclick="einzelAktion('${escapeHtml(e._id)}', 'freischalten')">Freischalten</button>` : ''}
+                            ${!e.freigegeben ? `<button class="btn-green" onclick="einzelAktion('${escapeHtml(e._id)}', 'freischalten')">Bestätigen &amp; Freischalten</button>` : ''}
                             <button class="btn-red" onclick="einzelAktion('${escapeHtml(e._id)}', 'loeschen')">Löschen</button>
                         </div>
                     </div>

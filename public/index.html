@@ -672,7 +672,7 @@
                     <polygon points="14.5 9.5 9.5 11.5 11.5 14.5 14.5 9.5"></polygon>
                 </svg>
                 <div>
-                    <strong>Hinweis zur Freigabe:</strong> Jeder Eintrag wird vom Wintersportverein Kaltenbach-Ried auf www.wsv.at geprüft und anschließend freigeschaltet. Datum und Uhrzeit werden automatisch ergänzt.
+                    <strong>Automatische Prüfung:</strong> Dein Eintrag wird beim Absenden automatisch auf unzulässige Inhalte geprüft und bei Unbedenklichkeit <strong>sofort veröffentlicht</strong>. Datum und Uhrzeit werden automatisch ergänzt.
                 </div>
             </div>
 
@@ -895,7 +895,9 @@
                     document.getElementById('summitCode').value = '';
                     document.getElementById('charCount').innerText = '0 / 1000';
 
-                    statusBox.innerText = 'Vielen Dank! Dein Eintrag wurde gespeichert, wird vom Wintersportverein geprüft und anschließend freigeschaltet.';
+                    statusBox.innerText = data.message || (data.direktFreigegeben
+                        ? 'Vielen Dank! Dein Eintrag wurde direkt im Gipfelbuch veröffentlicht.'
+                        : 'Dein Eintrag wurde gespeichert und zur Prüfung an die Moderation weitergeleitet.');
                     statusBox.classList.add('status-success');
                     statusBox.style.display = 'block';
 

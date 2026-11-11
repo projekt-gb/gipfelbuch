@@ -57,16 +57,220 @@ const gipfelEintragSchema = new mongoose.Schema({
     name: { type: String, required: true, maxlength: MAX_NAME },
     nachricht: { type: String, default: '', maxlength: MAX_NACHRICHT },
     summitCode: { type: Number },
-    freigegeben: { type: Boolean, default: false }, // Standard: Nicht freigegeben (wartet auf Admin)
+    freigegeben: { type: Boolean, default: true },
+    moderationsGrund: { type: String, default: '' }, // Leer = automatisch freigegeben; sonst Grund für Admin-Prüfung
     datum: { type: Date, default: Date.now }
 });
 
 const Eintrag = mongoose.model('Eintrag', gipfelEintragSchema, 'eintraege');
 
 // ==========================================
-// 5. HILFSFUNKTION FÜR ADMIN-PASSWORT, CAPTCHA & RATE-LIMIT
+// 5. AUTOMATISCHE TEXTPRÜFUNG (MODERATION)
 // ==========================================
-// Kompatibel mit bestehendem Render-Setup: nutzt ADMIN_PASSWORD oder Fallback 'geheim123'
+// Normalisiert Text (entfernt Tricks mit Sonderzeichen, Leetspeak wie 0/1/3/4/@, Mehrfachbuchstaben)
+function normalisiereText(str) {
+    return String(str || '')
+        .toLowerCase()
+        .replace(/ä/g, 'ae')
+        .replace(/ö/g, 'oe')
+        .replace(/ü/g, 'ue')
+        .replace(/ß/g, 'ss')
+        .replace(/@/g, 'a')
+        .replace(/0/g, 'o')
+        .replace(/1/g, 'i')
+        .replace(/3/g, 'e')
+        .replace(/4/g, 'a')
+        .replace(/5/g, 's')
+        .replace(/7/g, 't')
+        .replace(/8/g, 'b')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+}
+
+// 1) Rechtsradikale, nationalsozialistische, rassistische & extremistische Inhalte
+const MUSTER_RECHTSRADIKAL = [
+    /\bhitler\b/i,
+    /\badolf\s*h\b/i,
+    /\bsieg\s*heil\b/i,
+    /\bheil\s*(hitler|dir|uns|deutschland|oesterreich)\b/i,
+    /\bhakenkreuz\b/i,
+    /\bswastika\b/i,
+    /\bwaffen[\s-]*ss\b/i,
+    /\bschutzstaffel\b/i,
+    /\bnsdap\b/i,
+    /\bdrittes\s*reich\b/i,
+    /\b3\.\s*reich\b/i,
+    /\bfuehrer\b/i,
+    /\breichskristall/i,
+    /\bholocaust/i,
+    /\bauschwitz\b/i,
+    /\bmauthausen\b/i,
+    /\bkonzentrationslager\b/i,
+    /\bgaskammer/i,
+    /\bvergasen\b/i,
+    /\bvergast\b/i,
+    /\barisch/i,
+    /\bherrenrasse\b/i,
+    /\buntermensch/i,
+    /\bvolkstod\b/i,
+    /\bumvolkung\b/i,
+    /\brassen?(schande|krieg|rein|hygiene)\b/i,
+    /\bblut\s*und\s*ehre\b/i,
+    /\bblood\s*and\s*honour\b/i,
+    /\bwhite\s*power\b/i,
+    /\bwhite\s*pride\b/i,
+    /\bwpww\b/i,
+    /\bku[\s-]*klux/i,
+    /\bneonazi/i,
+    /\bscheiss?\s*nazi/i,
+    /\bnazi(s|schwein|sau|pack)?\b/i,
+    /\bfascho/i,
+    /\bfaschist/i,
+    /\bauslaender\s*raus\b/i,
+    /\bdeutschland\s*den\s*deutschen\b/i,
+    /\boesterreich\s*den\s*oesterreichern\b/i,
+    /\bkana(k|ck)e/i,
+    /\bnigger\b/i,
+    /\bnigga\b/i,
+    /\bneger\b/i,
+    /\bimam|islamist|kalifat\b/i,
+    /\bjuden(sau|pack|schwein)\b/i,
+    /\bscheiss\s*(juden|auslaender|moslems|muslime|fluechtlinge|asylanten|tuerken|schwarze)\b/i,
+    /\bdrecks\s*(juden|auslaender|moslems|muslime|fluechtlinge|asylanten|tuerken|schwarze)\b/i,
+    // Typische rechtsextreme Zahlencodes / Szenecodes (als alleinstehende Codes)
+    /(?:^|[^\d])(?:1488|8814|18\s*88|14\/88)(?:$|[^\d])/i,
+    /\b(?:h\s*h\s*88|88\s*h\s*h|combat\s*18|c18)\b/i,
+    /[卐卍]/
+];
+
+// 2) Beleidigungen, Fäkalsprache, Obszönitäten, Hassrede & Gewaltandrohungen (inkl. Tiroler/Österreichischer Kraftausdrücke)
+const MUSTER_BELEIDIGEND = [
+    /\barsch(loch|geige|kriecher|gesicht|ficker|lecker)?\b/i,
+    /\boasch(loch|gsicht|warzn|kriecher)?\b/i,
+    /\bhuren?(sohn|tochter|kind|bock)\b/i,
+    /\bschlampe/i,
+    /\bmissgeburt/i,
+    /\bmiststueck/i,
+    /\bvollidiot/i,
+    /\bidiot(en)?\b/i,
+    /\bvollpfosten\b/i,
+    /\bvollkoffer\b/i,
+    /\bvoll(trottel|depp|honk|spast)\b/i,
+    /\btrottel/i,
+    /\bspast(i|iker)?\b/i,
+    /\bmongo\b/i,
+    /\bbehindert(er|e|es)?\s*(sau|hund|typ|mensch|pack|verein)?\b/i,
+    /\bwichs(er|en|birne)\b/i,
+    /\bwix+(er|en)\b/i,
+    /\bfick(en|t|er|dich|euch|schnitte|fehler)?\b/i,
+    /\bfuck(er|ing|you|off)?\b/i,
+    /\bmotherfucker/i,
+    /\bbitch(es)?\b/i,
+    /\bcunt\b/i,
+    /\bfotze/i,
+    /\bfut(lapperl)?\b/i,
+    /\bschwanzlutscher/i,
+    /\bschwuchtel/i,
+    /\bdreck(sau|schwein|sack|spatz|pack|stück|stueck)\b/i,
+    /\bsau(trottel|depp|prolet|magen|hund|mensch|bande)\b/i,
+    /\bscheiss(e|dreck|kerl|verein|haufen|haus|kopf|leben|wetter)?\b/i,
+    /\bschass\b/i,
+    /\bpiss(er|nelke|kopf|en)\b/i,
+    /\bkack(e|bratze|haufen|verein)\b/i,
+    /\bverpiss(\s*dich|\s*euch)?\b/i,
+    /\bhalt(\s*die|\s*deine)?\s*(fresse|schnauze|goschn|pappn)\b/i,
+    /\bgoschn\s*halten\b/i,
+    /\b(bring|schech|stech|schiess|schlag).*?(dich|euch|ihn|sie|alle)\s*(um|tot|ab|zamm)\b/i,
+    /\bverreck(e|t|en)?\b/i,
+    /\bkrepier(e|t|en)?\b/i,
+    /\bhuansohn\b/i,
+    /\bhurnsohn\b/i,
+    /\bopfer\b/i,
+    /\blutscher\b/i,
+    /\bpenis|vagina|muschi|titten|porno|sex\b/i
+];
+
+// 3) Spam / Unerwünschte Links / Manipulation
+const MUSTER_SPAM = [
+    /https?:\/\//i,
+    /\bwww\.[a-z0-9-]+\.[a-z]{2,}/i,
+    /\b(casino|bitcoin|crypto|viagra|telegram|whatsapp|forex|loan)\b/i,
+    /<script|<iframe|javascript:|onerror=|onload=/i
+];
+
+function pruefeInhaltAutomatisch(name, nachricht) {
+    const originalGesamt = `${name} ${nachricht}`;
+    const normGesamt = normalisiereText(originalGesamt);
+    // Auch ohne Leerzeichen/Punkte prüfen (erkennt z. B. "h.i.t.l.e.r" oder "f i c k")
+    const kompakt = normGesamt.replace(/[^a-z0-9]+/g, '');
+
+    for (const regex of MUSTER_RECHTSRADIKAL) {
+        if (regex.test(originalGesamt) || regex.test(normGesamt)) {
+            return {
+                unbedenklich: false,
+                grund: 'Verdacht auf rechtsradikalen oder extremistischen Inhalt'
+            };
+        }
+    }
+
+    // Kompakttest für eindeutige rechtsextreme Kernbegriffe bei Buchstaben-Trennung (z. B. H-I-T-L-E-R)
+    if (/(siegheil|heilhitler|hakenkreuz|auschwitz|untermensch|whitepower|auslaenderraus)/.test(kompakt)) {
+        return {
+            unbedenklich: false,
+            grund: 'Verdacht auf rechtsradikalen oder extremistischen Inhalt'
+        };
+    }
+
+    // Alleinstehende Szene-Codes "88" oder "18" im Namen oder als einziger Nachrichteninhalt
+    if (/^\s*(88|18|1488|444)\s*$/.test(name) || /^\s*(88|18|1488|hh|ss|ns)\s*$/i.test(nachricht)) {
+        return {
+            unbedenklich: false,
+            grund: 'Verdacht auf extremistischen Zahlencode / Kurzcode'
+        };
+    }
+
+    for (const regex of MUSTER_BELEIDIGEND) {
+        if (regex.test(originalGesamt) || regex.test(normGesamt)) {
+            return {
+                unbedenklich: false,
+                grund: 'Verdacht auf Beleidigung oder unangemessene Ausdrucksweise'
+            };
+        }
+    }
+
+    if (/(hurensohn|huansohn|arschloch|oaschloch|missgeburt|wichser|fotze|fickdich)/.test(kompakt)) {
+        return {
+            unbedenklich: false,
+            grund: 'Verdacht auf Beleidigung oder unangemessene Ausdrucksweise'
+        };
+    }
+
+    for (const regex of MUSTER_SPAM) {
+        if (regex.test(originalGesamt) || regex.test(normGesamt)) {
+            return {
+                unbedenklich: false,
+                grund: 'Verdacht auf Werbung, Link oder unerwünschten Code'
+            };
+        }
+    }
+
+    // Unnatürliche Zeichenwiederholungen (z. B. "aaaaaaaaaaaaaaa")
+    if (/(.)\1{9,}/i.test(originalGesamt)) {
+        return {
+            unbedenklich: false,
+            grund: 'Auffällige Zeichenwiederholung (Spam-Verdacht)'
+        };
+    }
+
+    return {
+        unbedenklich: true,
+        grund: ''
+    };
+}
+
+// ==========================================
+// 6. HILFSFUNKTION FÜR ADMIN-PASSWORT, CAPTCHA & RATE-LIMIT
+// ==========================================
 const getAdminPassword = () => process.env.ADMIN_PASSWORD || 'geheim123';
 
 function pruefePasswort(eingabe) {
@@ -77,7 +281,6 @@ function pruefePasswort(eingabe) {
     return crypto.timingSafeEqual(a, b);
 }
 
-// Einfaches Rate-Limit im Speicher (ohne Zusatzpakete)
 function erstelleLimiter(max, fensterMs) {
     const treffer = new Map();
     setInterval(() => {
@@ -140,7 +343,6 @@ function pruefeCaptchaToken(token, antwort) {
     return true;
 }
 
-// Middleware für alle Admin-Routen
 function nurAdmin(req, res, next) {
     if (loginLimiter.istGesperrt(req.ip)) {
         return res.status(429).json({ error: "Zu viele Fehlversuche. Bitte in 15 Minuten erneut versuchen." });
@@ -157,7 +359,7 @@ function gueltigeIds(ids) {
 }
 
 // ==========================================
-// 6. ÖFFENTLICHE API-ROUTEN
+// 7. ÖFFENTLICHE API-ROUTEN
 // ==========================================
 
 // Admin-Bereitstellung unter /admin
@@ -190,14 +392,14 @@ app.get('/api/eintraege', async (req, res) => {
     }
 });
 
-// Neuen Eintrag speichern (Inkl. robuster Fehlerbehandlung bei Tippfehlern)
+// Neuen Eintrag speichern (mit automatischer Inhaltsprüfung)
 app.post('/api/eintraege', async (req, res) => {
     try {
         const { name, nachricht, summitCode, captchaAnswer, captchaExpected, captchaToken, website } = req.body;
 
         // 0. Honeypot gegen automatische Bots
         if (website) {
-            return res.json({ success: true, message: "Eintrag erfolgreich gespeichert." });
+            return res.json({ success: true, direktFreigegeben: true, message: "Eintrag erfolgreich gespeichert." });
         }
 
         // 0b. Rate-Limit pro IP
@@ -227,7 +429,7 @@ app.post('/api/eintraege', async (req, res) => {
             return res.status(400).json({ success: false, feld: 'summitCode', error: "Falscher Gipfel-Code eingetragen." });
         }
 
-        // 3. Prüfung 2: Rechenaufgabe (Server-Token bevorzugt, Fallback auf klassische Prüfung)
+        // 3. Prüfung 2: Rechenaufgabe
         let captchaOk = false;
         if (captchaToken) {
             captchaOk = pruefeCaptchaToken(captchaToken, captchaAnswer);
@@ -241,17 +443,37 @@ app.post('/api/eintraege', async (req, res) => {
             return res.status(400).json({ success: false, feld: 'captchaInput', error: "Sicherheitsfrage wurde falsch beantwortet." });
         }
 
-        // 4. In MongoDB speichern
+        // 4. Automatische Inhaltsprüfung:
+        // Unbedenkliche Texte werden sofort veröffentlicht (freigegeben = true).
+        // Rechtsradikale, beleidigende oder verdächtige Texte werden zurückgehalten (freigegeben = false)
+        // und müssen in der Admin-Konsole bestätigt werden.
+        const pruefung = pruefeInhaltAutomatisch(sauberName, sauberNachricht);
+
         const neuerEintrag = new Eintrag({
             name: sauberName,
             nachricht: sauberNachricht,
             summitCode: eingetragenesJahr,
-            freigegeben: false
+            freigegeben: pruefung.unbedenklich,
+            moderationsGrund: pruefung.grund
         });
 
         await neuerEintrag.save();
         eintragLimiter.zaehlen(req.ip);
-        res.json({ success: true, message: "Eintrag erfolgreich gespeichert." });
+
+        if (pruefung.unbedenklich) {
+            res.json({
+                success: true,
+                direktFreigegeben: true,
+                message: "Vielen Dank! Dein Eintrag wurde direkt im Gipfelbuch veröffentlicht."
+            });
+        } else {
+            console.warn(`[MODERATION] Eintrag zurückgehalten (${pruefung.grund}): Name="${sauberName}"`);
+            res.json({
+                success: true,
+                direktFreigegeben: false,
+                message: "Dein Eintrag wurde gespeichert und zur Prüfung an die Moderation weitergeleitet. Sobald er bestätigt wurde, erscheint er im Gipfelbuch."
+            });
+        }
 
     } catch (err) {
         console.error("[FEHLER] Fehler beim Speichern:", err.message);
@@ -260,7 +482,7 @@ app.post('/api/eintraege', async (req, res) => {
 });
 
 // ==========================================
-// 7. ADMIN-MODERATIONS-ROUTEN
+// 8. ADMIN-MODERATIONS-ROUTEN
 // ==========================================
 
 // Alle Einträge (auch ausstehende) für das Dashboard laden
@@ -335,7 +557,7 @@ app.post('/api/admin/loeschen-batch', nurAdmin, async (req, res) => {
 });
 
 // ==========================================
-// 8. SERVER STARTEN
+// 9. SERVER STARTEN
 // ==========================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
