@@ -3,92 +3,528 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gipfelbuch - Admin Dashboard</title>
+    <meta name="theme-color" content="#13231d">
+    <title>Gipfelbuch - Admin Dashboard · WSV Kaltenbach-Ried</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f2f4f4; color: #333; }
-        h1, h2 { color: #2c3e50; }
-        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        
-        input[type="password"], select, input[type="date"] { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-        input[type="password"] { width: 60%; margin-right: 10px; }
-        
-        button { background-color: #e67e22; color: white; border: none; padding: 9px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        button:hover { background-color: #d35400; }
-        .btn-green { background-color: #27ae60; }
-        .btn-green:hover { background-color: #219653; }
-        .btn-red { background-color: #c0392b; }
-        .btn-red:hover { background-color: #a93226; }
-        .btn-secondary { background-color: #7f8c8d; }
-        .btn-secondary:hover { background-color: #6c7a7d; }
+        :root {
+            --slate-950: #0d1915;
+            --slate-900: #152721;
+            --slate-800: #1f372f;
+            --slate-700: #2e4d42;
+            --slate-500: #5b6d65;
+            --paper-bg: #f4efe6;
+            --paper-card: #fbf8f2;
+            --paper-inner: #f5f0e6;
+            --line-border: #dcd3c2;
+            --line-strong: #c4b79f;
+            --gold: #a67c37;
+            --gold-light: #c89e56;
+            --pine: #1e4635;
+            --pine-hover: #153528;
+            --crimson: #942920;
+            --crimson-hover: #751f18;
+            --amber: #b36b16;
+            --serif: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, "Times New Roman", serif;
+            --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
 
-        .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; background: #eaeded; padding: 12px; border-radius: 6px; margin-bottom: 15px; }
-        .batch-actions { display: flex; gap: 10px; margin-top: 10px; }
+        * { box-sizing: border-box; }
 
-        .error-msg { color: #c0392b; margin-top: 10px; font-weight: bold; display: none; }
-        .eintrag-card { background: #fff; padding: 15px; border-radius: 6px; border-left: 5px solid #e67e22; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; gap: 15px; align-items: flex-start; }
-        .eintrag-card.freigegeben { border-left-color: #27ae60; }
-        .eintrag-content { flex-grow: 1; }
-        
-        .checkbox-large { width: 20px; height: 20px; cursor: pointer; margin-top: 3px; }
+        body {
+            margin: 0;
+            background-color: var(--paper-bg);
+            color: var(--slate-900);
+            font-family: var(--sans);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ==========================================
+           ALPINER KOPFBEREICH
+           ========================================== */
+        .admin-header {
+            position: relative;
+            background: linear-gradient(175deg, #0b1613 0%, #152822 52%, #244037 100%);
+            color: #f7f3eb;
+            padding: 36px 20px 105px;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .crest-small {
+            width: 54px;
+            height: 54px;
+            margin: 0 auto 12px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(200, 158, 86, 0.55);
+            background: rgba(13, 25, 21, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .club-kicker {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--gold-light);
+            margin-bottom: 6px;
+        }
+
+        .admin-header h1 {
+            margin: 0;
+            font-family: var(--serif);
+            font-size: clamp(1.65rem, 4.5vw, 2.25rem);
+            color: #fbf8f2;
+        }
+
+        .mountain-silhouette {
+            position: absolute;
+            left: 0;
+            bottom: -1px;
+            width: 100%;
+            height: 82px;
+            display: block;
+        }
+
+        /* ==========================================
+           CONTAINER & KARTEN
+           ========================================== */
+        .admin-container {
+            position: relative;
+            z-index: 2;
+            max-width: 860px;
+            margin: -50px auto 0;
+            padding: 0 16px 44px;
+        }
+
+        .card {
+            background: var(--paper-card);
+            border: 1px solid var(--line-strong);
+            border-radius: 10px;
+            padding: 28px 26px;
+            margin-bottom: 22px;
+            box-shadow:
+                0 2px 4px rgba(15, 25, 20, 0.05),
+                0 16px 34px rgba(15, 25, 20, 0.08),
+                inset 0 0 0 3px var(--paper-card),
+                inset 0 0 0 4px rgba(166, 124, 55, 0.22);
+        }
+
+        @media (max-width: 560px) {
+            .card { padding: 20px 16px; }
+        }
+
+        h2 {
+            margin: 0 0 14px;
+            font-family: var(--serif);
+            font-size: 1.32rem;
+            color: var(--slate-900);
+        }
+
+        /* ==========================================
+           LOGIN-BEREICH
+           ========================================== */
+        .login-card {
+            max-width: 480px;
+            margin: 0 auto 24px;
+        }
+
+        .login-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 460px) {
+            .login-row { flex-direction: column; }
+        }
+
+        input[type="password"],
+        input[type="search"],
+        input[type="date"],
+        select {
+            padding: 10px 13px;
+            font-family: var(--sans);
+            font-size: 0.94rem;
+            color: var(--slate-900);
+            background: #ffffff;
+            border: 1.5px solid var(--line-strong);
+            border-radius: 6px;
+        }
+
+        input[type="password"] {
+            flex: 1;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--pine);
+            box-shadow: 0 0 0 3px rgba(30, 70, 53, 0.14);
+        }
+
+        /* ==========================================
+           SCHALTFLÄCHEN
+           ========================================== */
+        button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            padding: 10px 16px;
+            font-family: var(--sans);
+            font-size: 0.88rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            color: #fbf8f2;
+            background-color: var(--gold);
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.18s ease, transform 0.1s ease;
+        }
+
+        button:hover { background-color: #8d672b; }
+        button:active { transform: translateY(1px); }
+
+        .btn-green { background-color: var(--pine); }
+        .btn-green:hover { background-color: var(--pine-hover); }
+
+        .btn-red { background-color: var(--crimson); }
+        .btn-red:hover { background-color: var(--crimson-hover); }
+
+        .btn-secondary {
+            background-color: #e6dfd1;
+            color: var(--slate-900);
+            border-color: var(--line-strong);
+        }
+        .btn-secondary:hover { background-color: #d8ceb9; }
+
+        button svg {
+            width: 15px;
+            height: 15px;
+            flex-shrink: 0;
+        }
+
+        /* ==========================================
+           WERKZEUGLEISTEN & STATISTIK
+           ========================================== */
+        .summary-strip {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .summary-tile {
+            background: var(--paper-inner);
+            border: 1px solid var(--line-border);
+            border-radius: 8px;
+            padding: 12px 14px;
+            text-align: center;
+        }
+
+        .summary-tile strong {
+            display: block;
+            font-family: var(--serif);
+            font-size: 1.45rem;
+            line-height: 1.15;
+            color: var(--slate-900);
+        }
+
+        .summary-tile span {
+            font-size: 0.74rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--slate-500);
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--paper-inner);
+            border: 1px solid var(--line-border);
+            padding: 13px 15px;
+            border-radius: 8px;
+            margin-bottom: 14px;
+        }
+
+        .toolbar-group {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toolbar label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--slate-700);
+        }
+
+        .batch-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .error-msg {
+            color: var(--crimson);
+            background: #f9ebe9;
+            border: 1px solid #e4b9b4;
+            padding: 10px 12px;
+            border-radius: 6px;
+            margin-top: 12px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            display: none;
+        }
+
+        /* ==========================================
+           EINTRAGSKARTEN IM ADMIN-BEREICH
+           ========================================== */
+        .section-heading-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 18px 0 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--line-border);
+        }
+
+        .section-heading-row h2 { margin: 0; }
+
+        .eintrag-card {
+            background: #ffffff;
+            padding: 16px 18px;
+            border-radius: 8px;
+            border: 1px solid var(--line-border);
+            border-left: 5px solid var(--amber);
+            margin-bottom: 12px;
+            box-shadow: 0 2px 5px rgba(15, 25, 20, 0.04);
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+        }
+
+        .eintrag-card.freigegeben {
+            border-left-color: var(--pine);
+        }
+
+        .eintrag-content {
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        .eintrag-meta-line {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px 12px;
+        }
+
+        .eintrag-author {
+            font-family: var(--serif);
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--slate-900);
+        }
+
+        .eintrag-date {
+            font-size: 0.8rem;
+            color: var(--slate-500);
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .status-pill::before {
+            content: "";
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-pill.pending {
+            background: #fcf1df;
+            color: #8f5109;
+            border: 1px solid #eccfa0;
+        }
+        .status-pill.pending::before { background: var(--amber); }
+
+        .status-pill.approved {
+            background: #e5f2ea;
+            color: var(--pine);
+            border: 1px solid #b8d8c5;
+        }
+        .status-pill.approved::before { background: var(--pine); }
+
+        .eintrag-message {
+            margin: 10px 0 12px;
+            color: var(--slate-800);
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .checkbox-large {
+            width: 19px;
+            height: 19px;
+            accent-color: var(--pine);
+            cursor: pointer;
+            margin-top: 3px;
+            flex-shrink: 0;
+        }
+
         .hidden { display: none; }
     </style>
 </head>
 <body>
 
-    <h1>🛠️ WSV Kaltenbach-Ried - Admin Moderation</h1>
+    <header class="admin-header">
+        <div class="crest-small" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 48 48" fill="none">
+                <path d="M24 7V31" stroke="#c89e56" stroke-width="2.6" stroke-linecap="round"/>
+                <path d="M16 15H32" stroke="#c89e56" stroke-width="2.6" stroke-linecap="round"/>
+                <path d="M9 39L19 28L24 32L30 26L39 39H9Z" stroke="#e6dfd1" stroke-width="1.8" stroke-linejoin="round" fill="rgba(200,158,86,0.18)"/>
+            </svg>
+        </div>
+        <div class="club-kicker">WSV Kaltenbach-Ried · Gipfelbuch am Gedrechter</div>
+        <h1>Moderation &amp; Freigabe</h1>
 
-    <!-- Login Box -->
-    <div id="loginBox" class="card">
-        <h2>Passwort eingeben</h2>
-        <input type="password" id="adminPassword" placeholder="Admin-Passwort">
-        <button onclick="ladeAdminEintraege()">Einloggen</button>
-        <div id="errorMessage" class="error-msg"></div>
-    </div>
+        <svg class="mountain-silhouette" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0 120 L0 74 L190 36 L370 78 L580 22 L780 76 L980 30 L1190 78 L1340 46 L1440 72 L1440 120 Z" fill="rgba(255, 255, 255, 0.08)"/>
+            <path d="M0 120 L0 94 L240 68 L480 96 L760 58 L1040 94 L1260 72 L1440 92 L1440 120 Z" fill="#f4efe6"/>
+        </svg>
+    </header>
 
-    <!-- Admin Panel -->
-    <div id="adminPanel" class="card hidden">
-        
-        <!-- Filter Bar -->
-        <div class="toolbar">
-            <div>
-                <label><strong>Status Filter:</strong></label>
-                <select id="statusFilter" onchange="filterAnwenden()">
-                    <option value="alle">Alle anzeigen</option>
-                    <option value="offen" selected>Nur Ausstehende (🔴)</option>
-                    <option value="freigegeben">Nur Freigegebene (🟢)</option>
-                </select>
+    <main class="admin-container">
+
+        <!-- Login Box -->
+        <div id="loginBox" class="card login-card">
+            <h2>Moderator-Anmeldung</h2>
+            <p style="margin: 0 0 12px; font-size: 0.9rem; color: var(--slate-500);">
+                Bitte das Verein-Passwort eingeben, um Einsendungen zu prüfen und freizuschalten.
+            </p>
+            <div class="login-row">
+                <input type="password" id="adminPassword" placeholder="Admin-Passwort eingeben" onkeydown="if(event.key==='Enter') ladeAdminEintraege()">
+                <button class="btn-green" onclick="ladeAdminEintraege()">Anmelden</button>
             </div>
-            <div>
-                <label><strong>Datum Tag:</strong></label>
-                <input type="date" id="datumFilter" onchange="filterAnwenden()">
-                <button class="btn-secondary" onclick="datumZuruecksetzen()">Alle Tage</button>
-            </div>
+            <div id="errorMessage" class="error-msg"></div>
         </div>
 
-        <!-- Multi-Select Control Bar -->
-        <div class="toolbar">
-            <div>
-                <input type="checkbox" id="selectAll" class="checkbox-large" onchange="toggleSelectAll(this)">
-                <label for="selectAll" style="display:inline; cursor:pointer;"><strong>Alle auswählen / abwählen</strong></label>
+        <!-- Admin Panel -->
+        <div id="adminPanel" class="card hidden">
+
+            <div class="summary-strip">
+                <div class="summary-tile">
+                    <strong id="countPending">0</strong>
+                    <span>Ausstehend</span>
+                </div>
+                <div class="summary-tile">
+                    <strong id="countApproved">0</strong>
+                    <span>Öffentlich</span>
+                </div>
+                <div class="summary-tile">
+                    <strong id="countTotal">0</strong>
+                    <span>Gesamt</span>
+                </div>
             </div>
-            <div class="batch-actions">
-                <button class="btn-green" onclick="batchAktion('freischalten')">Selected freischalten</button>
-                <button class="btn-red" onclick="batchAktion('loeschen')">Selected löschen</button>
+
+            <!-- Filter Bar -->
+            <div class="toolbar">
+                <div class="toolbar-group">
+                    <label for="statusFilter">Status:</label>
+                    <select id="statusFilter" onchange="filterAnwenden()">
+                        <option value="alle">Alle anzeigen</option>
+                        <option value="offen" selected>Nur Ausstehende</option>
+                        <option value="freigegeben">Nur Freigegebene</option>
+                    </select>
+                </div>
+
+                <div class="toolbar-group">
+                    <label for="datumFilter">Datum:</label>
+                    <input type="date" id="datumFilter" onchange="filterAnwenden()">
+                    <button class="btn-secondary" onclick="datumZuruecksetzen()">Alle Tage</button>
+                </div>
             </div>
+
+            <!-- Multi-Select Control Bar -->
+            <div class="toolbar">
+                <div class="toolbar-group">
+                    <input type="checkbox" id="selectAll" class="checkbox-large" onchange="toggleSelectAll(this)">
+                    <label for="selectAll" style="cursor:pointer;">Alle sichtbaren auswählen</label>
+                </div>
+                <div class="batch-actions">
+                    <button class="btn-green" onclick="batchAktion('freischalten')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        Auswahl freischalten
+                    </button>
+                    <button class="btn-red" onclick="batchAktion('loeschen')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v6M14 11v6"></path></svg>
+                        Auswahl löschen
+                    </button>
+                </div>
+            </div>
+
+            <div class="section-heading-row">
+                <h2>Einsendungen (<span id="eintraegeAuszahl">0</span>)</h2>
+                <button class="btn-secondary" onclick="ladeAdminEintraege()">Liste aktualisieren</button>
+            </div>
+
+            <div id="adminEintraegeListe">Lade Daten …</div>
         </div>
 
-        <h2>Einsendungen (<span id="eintraegeAuszahl">0</span>)</h2>
-        <div id="adminEintraegeListe">Lade Daten...</div>
-    </div>
+    </main>
 
     <script>
+        const ZEITZONE = 'Europe/Vienna';
         let alleEintraege = [];
         let aktuellesPasswort = "";
 
+        function formatDatum(datum) {
+            return new Date(datum).toLocaleString('de-AT', {
+                timeZone: ZEITZONE,
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            }) + ' Uhr';
+        }
+
+        function tagInOesterreich(datum) {
+            return new Date(datum).toLocaleDateString('sv-SE', { timeZone: ZEITZONE });
+        }
+
         async function ladeAdminEintraege() {
-            aktuellesPasswort = document.getElementById('adminPassword').value;
+            const pwInput = document.getElementById('adminPassword');
+            if (pwInput.value) {
+                aktuellesPasswort = pwInput.value;
+            }
             const errorDiv = document.getElementById('errorMessage');
-            
             errorDiv.style.display = 'none';
 
             try {
@@ -109,7 +545,8 @@
                 document.getElementById('loginBox').classList.add('hidden');
                 document.getElementById('adminPanel').classList.remove('hidden');
 
-                alleEintraege = result;
+                alleEintraege = Array.isArray(result) ? result : [];
+                aktualisiereStatistik();
                 filterAnwenden();
 
             } catch (err) {
@@ -118,18 +555,24 @@
             }
         }
 
+        function aktualisiereStatistik() {
+            const offen = alleEintraege.filter(e => !e.freigegeben).length;
+            const frei = alleEintraege.length - offen;
+            document.getElementById('countPending').textContent = offen;
+            document.getElementById('countApproved').textContent = frei;
+            document.getElementById('countTotal').textContent = alleEintraege.length;
+        }
+
         function filterAnwenden() {
             const statusVal = document.getElementById('statusFilter').value;
-            const datumVal = document.getElementById('datumFilter').value; // Formatted YYYY-MM-DD
+            const datumVal = document.getElementById('datumFilter').value; // YYYY-MM-DD
 
             let gefiltert = alleEintraege.filter(e => {
-                // Status Filter
                 if (statusVal === 'offen' && e.freigegeben) return false;
                 if (statusVal === 'freigegeben' && !e.freigegeben) return false;
 
-                // Datum Filter (Tagweise)
                 if (datumVal) {
-                    const eintragTag = new Date(e.datum).toISOString().split('T')[0];
+                    const eintragTag = tagInOesterreich(e.datum);
                     if (eintragTag !== datumVal) return false;
                 }
 
@@ -150,26 +593,31 @@
             document.getElementById('selectAll').checked = false;
 
             if (eintraege.length === 0) {
-                listeDiv.innerHTML = '<p>Keine passenden Einträge gefunden.</p>';
+                listeDiv.innerHTML = '<p style="color: var(--slate-500); font-style: italic;">Keine passenden Einträge für diesen Filter vorhanden.</p>';
                 return;
             }
 
             listeDiv.innerHTML = '';
             eintraege.forEach(e => {
                 const statusKlasse = e.freigegeben ? 'freigegeben' : '';
-                const statusText = e.freigegeben ? '🟢 Öffentlich' : '🔴 Ausstehend';
-                const datumFormatted = new Date(e.datum).toLocaleString('de-DE');
+                const pillKlasse = e.freigegeben ? 'approved' : 'pending';
+                const statusText = e.freigegeben ? 'Öffentlich' : 'Ausstehend';
+                const datumFormatted = formatDatum(e.datum);
 
                 const div = document.createElement('div');
                 div.className = `eintrag-card ${statusKlasse}`;
                 div.innerHTML = `
-                    <input type="checkbox" class="eintrag-checkbox checkbox-large" value="${e._id}">
+                    <input type="checkbox" class="eintrag-checkbox checkbox-large" value="${escapeHtml(e._id)}">
                     <div class="eintrag-content">
-                        <strong>${escapeHtml(e.name)}</strong> <small>(${datumFormatted})</small> - <em>${statusText}</em><br>
-                        <p style="margin: 8px 0;">${escapeHtml(e.nachricht || 'Keine Nachricht')}</p>
-                        <div>
-                            ${!e.freigegeben ? `<button class="btn-green" onclick="einzelAktion('${e._id}', 'freischalten')">Freischalten</button>` : ''}
-                            <button class="btn-red" onclick="einzelAktion('${e._id}', 'loeschen')">Löschen</button>
+                        <div class="eintrag-meta-line">
+                            <span class="eintrag-author">${escapeHtml(e.name)}</span>
+                            <span class="eintrag-date">${escapeHtml(datumFormatted)}</span>
+                            <span class="status-pill ${pillKlasse}">${statusText}</span>
+                        </div>
+                        <p class="eintrag-message">${escapeHtml(e.nachricht || 'Keine Nachricht angegeben')}</p>
+                        <div class="card-actions">
+                            ${!e.freigegeben ? `<button class="btn-green" onclick="einzelAktion('${escapeHtml(e._id)}', 'freischalten')">Freischalten</button>` : ''}
+                            <button class="btn-red" onclick="einzelAktion('${escapeHtml(e._id)}', 'loeschen')">Löschen</button>
                         </div>
                     </div>
                 `;
@@ -188,6 +636,9 @@
         }
 
         async function einzelAktion(id, aktion) {
+            if (aktion === 'loeschen' && !confirm('Möchtest du diesen Eintrag wirklich unwiderruflich löschen?')) {
+                return;
+            }
             const endpoint = aktion === 'freischalten' ? '/api/admin/freischalten' : '/api/admin/loeschen';
             await sendRequest(endpoint, { password: aktuellesPasswort, id });
         }
@@ -216,9 +667,10 @@
                 });
 
                 if (res.ok) {
-                    ladeAdminEintraege(); // Neu laden
+                    ladeAdminEintraege();
                 } else {
-                    alert("Aktion fehlgeschlagen.");
+                    const data = await res.json().catch(() => ({}));
+                    alert(data.error || "Aktion fehlgeschlagen.");
                 }
             } catch (err) {
                 console.error("Fehler:", err);
@@ -226,7 +678,12 @@
         }
 
         function escapeHtml(str) {
-            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
         }
     </script>
 </body>

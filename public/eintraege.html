@@ -5,85 +5,253 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gipfelbuch am Gedrechter – Einträge</title>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            max-width: 600px; 
-            margin: 0 auto; 
-            padding: 15px; 
-            background-color: #f4f7f6; 
-            color: #333; 
+        :root {
+            --slate-900: #152721;
+            --slate-800: #1f372f;
+            --slate-500: #5b6d65;
+            --paper-bg: #f4efe6;
+            --paper-card: #fbf8f2;
+            --line-border: #dcd3c2;
+            --line-strong: #c4b79f;
+            --gold: #a67c37;
+            --gold-faint: rgba(166, 124, 55, 0.12);
+            --serif: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, "Times New Roman", serif;
+            --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
-        .card { 
-            background: white; 
-            padding: 20px; 
-            border-radius: 8px; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: var(--sans);
+            max-width: 660px;
+            margin: 0 auto;
+            padding: 16px;
+            background-color: var(--paper-bg);
+            color: var(--slate-900);
+            line-height: 1.55;
+            -webkit-font-smoothing: antialiased;
         }
-        h2 { 
-            margin-top: 0; 
-            color: #2c3e50; 
-            border-bottom: 2px solid #27ae60; 
-            padding-bottom: 10px; 
+
+        .card {
+            background: var(--paper-card);
+            padding: 26px 24px;
+            border-radius: 10px;
+            border: 1px solid var(--line-strong);
+            box-shadow:
+                0 2px 4px rgba(15, 25, 20, 0.05),
+                0 12px 28px rgba(15, 25, 20, 0.07),
+                inset 0 0 0 3px var(--paper-card),
+                inset 0 0 0 4px rgba(166, 124, 55, 0.22);
         }
-        .eintrag { 
-            border-bottom: 1px solid #eee; 
-            padding: 12px 0; 
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding-bottom: 14px;
+            margin-bottom: 6px;
+            border-bottom: 1.5px solid var(--line-strong);
         }
-        .eintrag:last-child { 
-            border-bottom: none; 
+
+        .title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-        .eintrag-header { 
-            font-weight: bold; 
-            color: #2c3e50; 
-            font-size: 1.05em; 
+
+        .crest-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--gold);
+            background: #152822;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
         }
-        .eintrag-datum { 
-            font-size: 0.8em; 
-            color: #7f8c8d; 
-            margin-top: 2px; 
+
+        h2 {
+            margin: 0;
+            font-family: var(--serif);
+            font-size: 1.35rem;
+            color: var(--slate-900);
         }
-        .eintrag-text { 
-            margin: 8px 0 0 0; 
-            line-height: 1.4; 
+
+        .subtitle {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--gold);
+        }
+
+        .count-badge {
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: var(--gold-faint);
+            border: 1px solid rgba(166, 124, 55, 0.35);
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--slate-800);
+            white-space: nowrap;
+        }
+
+        .eintrag {
+            position: relative;
+            padding: 16px 0 16px 20px;
+            border-bottom: 1px solid var(--line-border);
+        }
+
+        .eintrag:last-child {
+            border-bottom: none;
+            padding-bottom: 4px;
+        }
+
+        .eintrag::before {
+            content: "";
+            position: absolute;
+            left: 4px;
+            top: 24px;
+            bottom: -16px;
+            width: 1px;
+            background: var(--line-border);
+        }
+
+        .eintrag:last-child::before { display: none; }
+
+        .eintrag::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 21px;
+            width: 8px;
+            height: 8px;
+            transform: rotate(45deg);
+            background: var(--paper-card);
+            border: 1.5px solid var(--gold);
+        }
+
+        .eintrag-top {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .eintrag-header {
+            font-family: var(--serif);
+            font-weight: 700;
+            color: var(--slate-900);
+            font-size: 1.05rem;
+            overflow-wrap: anywhere;
+        }
+
+        .eintrag-datum {
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--slate-500);
+        }
+
+        .eintrag-text {
+            margin: 7px 0 0 0;
+            line-height: 1.5;
+            color: var(--slate-800);
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .empty-state {
+            padding: 24px 8px;
+            text-align: center;
+            font-family: var(--serif);
+            font-style: italic;
+            color: var(--slate-500);
         }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h2>Gipfelbuch-Einträge</h2>
-        <div id="eintraegeListe">Lade Einträge...</div>
+        <div class="card-header">
+            <div class="title-wrap">
+                <div class="crest-icon" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 48 48" fill="none">
+                        <path d="M24 7V31" stroke="#c89e56" stroke-width="2.8" stroke-linecap="round"/>
+                        <path d="M16 15H32" stroke="#c89e56" stroke-width="2.8" stroke-linecap="round"/>
+                        <path d="M9 39L19 28L24 32L30 26L39 39H9Z" stroke="#e6dfd1" stroke-width="2" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="subtitle">Gedrechter · 2.217 m</div>
+                    <h2>Gipfelbuch-Einträge</h2>
+                </div>
+            </div>
+            <span class="count-badge" id="entryCountBadge">Chronik</span>
+        </div>
+
+        <div id="eintraegeListe">
+            <div class="empty-state">Lade Einträge …</div>
+        </div>
     </div>
 
     <script>
+        const ZEITZONE = 'Europe/Vienna';
+
+        function formatDatum(datum) {
+            return new Date(datum).toLocaleString('de-AT', {
+                timeZone: ZEITZONE,
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            }) + ' Uhr';
+        }
+
         // Funktion zum Abrufen aller freigeschalteten Beiträge
         async function ladeEintraege() {
             try {
-                const res = await fetch('/api/eintraege');
+                const res = await fetch('/api/eintraege', { cache: 'no-store' });
                 const eintraege = await res.json();
                 const liste = document.getElementById('eintraegeListe');
-                
+                const badge = document.getElementById('entryCountBadge');
+
                 if (!Array.isArray(eintraege) || eintraege.length === 0) {
-                    liste.innerHTML = '<p>Noch keine freigeschalteten Einträge vorhanden.</p>';
+                    badge.innerText = '0 Einträge';
+                    liste.innerHTML = '<div class="empty-state">Noch keine freigeschalteten Einträge vorhanden.</div>';
                     return;
                 }
+
+                badge.innerText = eintraege.length === 1 ? '1 Eintrag' : `${eintraege.length} Einträge`;
 
                 // Durchläuft ausnahmslos alle freigegebenen Einträge
                 liste.innerHTML = eintraege.map(e => `
                     <div class="eintrag">
-                        <div class="eintrag-header">${escapeHtml(e.name)}</div>
-                        <div class="eintrag-datum">${new Date(e.datum).toLocaleString('de-DE')} Uhr</div>
-                        <p class="eintrag-text">${escapeHtml(e.nachricht || '')}</p>
+                        <div class="eintrag-top">
+                            <div class="eintrag-header">${escapeHtml(e.name)}</div>
+                            <div class="eintrag-datum">${escapeHtml(formatDatum(e.datum))}</div>
+                        </div>
+                        ${e.nachricht ? `<p class="eintrag-text">${escapeHtml(e.nachricht)}</p>` : ''}
                     </div>
                 `).join('');
             } catch (err) {
-                document.getElementById('eintraegeListe').innerText = 'Fehler beim Laden der Einträge.';
+                document.getElementById('eintraegeListe').innerHTML = '<div class="empty-state">Fehler beim Laden der Einträge.</div>';
             }
         }
 
         // Schutz vor Cross-Site-Scripting (XSS)
         function escapeHtml(str) {
-            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
         }
 
         // Beim Laden der Seite direkt ausführen

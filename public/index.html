@@ -3,194 +3,855 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gipfelbuch am Gedrechter</title>
+    <meta name="theme-color" content="#13231d">
+    <title>Gipfelbuch am Gedrechter · WSV Kaltenbach-Ried</title>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            max-width: 600px; 
-            margin: 0 auto; 
-            padding: 20px; 
-            background-color: #f4f7f6; 
-            color: #333; 
+        :root {
+            --slate-950: #0d1915;
+            --slate-900: #152721;
+            --slate-800: #1f372f;
+            --slate-700: #2e4d42;
+            --slate-500: #5b6d65;
+            --slate-400: #809189;
+            --paper-bg: #f4efe6;
+            --paper-card: #fbf8f2;
+            --paper-inner: #f5f0e6;
+            --line-border: #dcd3c2;
+            --line-strong: #c4b79f;
+            --gold: #a67c37;
+            --gold-light: #c89e56;
+            --gold-faint: rgba(166, 124, 55, 0.12);
+            --pine: #1e4635;
+            --pine-hover: #153528;
+            --crimson: #8f2920;
+            --crimson-bg: #f9ebe9;
+            --success: #1d5238;
+            --success-bg: #e7f2ec;
+            --serif: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, "Times New Roman", serif;
+            --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
-        h1 { text-align: center; color: #2c3e50; }
-        .card { 
-            background: white; 
-            padding: 20px; 
-            border-radius: 8px; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
-            margin-bottom: 20px; 
-        }
-        .info-box {
-            background-color: #e8f4f8;
-            border-left: 4px solid #2980b9;
-            padding: 10px 15px;
-            margin-bottom: 15px;
-            border-radius: 0 4px 4px 0;
-            font-size: 0.9em;
-            color: #2c3e50;
-        }
-        label { display: block; margin-top: 10px; font-weight: bold; }
-        input, textarea, button { 
-            width: 100%; 
-            padding: 10px; 
-            margin-top: 5px; 
-            border: 1px solid #ccc; 
-            border-radius: 4px; 
-            box-sizing: border-box; 
-        }
-        .security-box {
-            background: #eef2f5;
-            padding: 12px;
-            border-radius: 4px;
-            margin-top: 15px;
-            border: 1px dashed #7f8c8d;
-        }
-        
-        button { 
-            background-color: #27ae60; 
-            color: white; 
-            border: none; 
-            font-weight: bold; 
-            margin-top: 15px; 
-            cursor: pointer; 
-            transition: background-color 0.3s ease;
-        }
-        button:hover { background-color: #219150; }
 
-        button:disabled, button.btn-disabled {
-            background-color: #bdc3c7 !important;
-            color: #7f8c8d;
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background-color: var(--paper-bg);
+            background-image:
+                radial-gradient(circle at 15% 10%, rgba(166, 124, 55, 0.05) 0%, transparent 45%),
+                radial-gradient(circle at 85% 80%, rgba(30, 70, 53, 0.05) 0%, transparent 50%);
+            color: var(--slate-900);
+            font-family: var(--sans);
+            line-height: 1.55;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ==========================================
+           ALPINER KOPFBEREICH MIT GEBIRGSKULISSE
+           ========================================== */
+        .alpine-header {
+            position: relative;
+            background: linear-gradient(175deg, #0b1613 0%, #152822 48%, #244037 82%, #3a5a4e 100%);
+            color: #f7f3eb;
+            padding: 46px 20px 140px;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        /* Dezente Höhenlinien-Struktur im Hintergrund */
+        .topo-overlay {
+            position: absolute;
+            inset: 0;
+            opacity: 0.07;
+            pointer-events: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        .crest-wrapper {
+            position: relative;
+            z-index: 2;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+
+        /* Alpin-Emblem mit echtem Gipfelkreuz-Vektor */
+        .summit-emblem {
+            width: 68px;
+            height: 68px;
+            margin: 0 auto 18px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(200, 158, 86, 0.55);
+            background: radial-gradient(circle, rgba(25, 48, 39, 0.9) 0%, rgba(11, 22, 19, 0.95) 100%);
+            box-shadow: 0 0 0 5px rgba(200, 158, 86, 0.1), 0 10px 25px rgba(0, 0, 0, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .club-overline {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-size: 0.74rem;
+            font-weight: 600;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--gold-light);
+            margin-bottom: 10px;
+        }
+
+        .club-overline::before,
+        .club-overline::after {
+            content: "";
+            width: 28px;
+            height: 1px;
+            background: rgba(200, 158, 86, 0.5);
+        }
+
+        .alpine-header h1 {
+            margin: 0;
+            font-family: var(--serif);
+            font-size: clamp(2rem, 6vw, 2.85rem);
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            color: #fbf8f2;
+            text-shadow: 0 3px 16px rgba(0, 0, 0, 0.35);
+        }
+
+        .summit-subtitle {
+            margin: 6px 0 16px;
+            font-family: var(--serif);
+            font-style: italic;
+            font-size: 1.12rem;
+            color: #d6cfc2;
+        }
+
+        .elevation-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 5px 16px;
+            border: 1px solid rgba(200, 158, 86, 0.4);
+            border-radius: 999px;
+            background: rgba(13, 25, 21, 0.55);
+            font-size: 0.76rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #e6dfd1;
+        }
+
+        .elevation-badge .dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--gold-light);
+        }
+
+        /* Mehrstufiges Bergpanorama am unteren Header-Rand */
+        .mountain-silhouette {
+            position: absolute;
+            left: 0;
+            bottom: -1px;
+            width: 100%;
+            height: 118px;
+            display: block;
+            z-index: 1;
+        }
+
+        /* ==========================================
+           HAUPTBEREICH & GIPFELBUCH-KARTEN
+           ========================================== */
+        .main-container {
+            position: relative;
+            z-index: 3;
+            max-width: 680px;
+            margin: -68px auto 0;
+            padding: 0 16px 40px;
+        }
+
+        .ledger-card {
+            position: relative;
+            background: var(--paper-card);
+            border: 1px solid var(--line-strong);
+            border-radius: 10px;
+            padding: 32px 30px;
+            margin-bottom: 28px;
+            box-shadow:
+                0 2px 4px rgba(15, 25, 20, 0.05),
+                0 18px 38px rgba(15, 25, 20, 0.09),
+                inset 0 0 0 4px var(--paper-card),
+                inset 0 0 0 5px rgba(166, 124, 55, 0.25);
+        }
+
+        @media (max-width: 520px) {
+            .ledger-card { padding: 24px 18px; }
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 22px;
+        }
+
+        .section-kicker {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 4px;
+        }
+
+        .section-title {
+            margin: 0;
+            font-family: var(--serif);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--slate-900);
+        }
+
+        .ornament-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 12px auto 0;
+            max-width: 220px;
+        }
+
+        .ornament-divider::before,
+        .ornament-divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: var(--line-strong);
+        }
+
+        .ornament-diamond {
+            width: 7px;
+            height: 7px;
+            transform: rotate(45deg);
+            border: 1.5px solid var(--gold);
+        }
+
+        /* ==========================================
+           HINWEISBOX
+           ========================================== */
+        .notice-banner {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            background: var(--paper-inner);
+            border: 1px solid var(--line-border);
+            border-left: 3.5px solid var(--gold);
+            border-radius: 6px;
+            padding: 13px 16px;
+            margin-bottom: 24px;
+            font-size: 0.88rem;
+            color: var(--slate-700);
+        }
+
+        .notice-icon {
+            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+            color: var(--gold);
+            margin-top: 2px;
+        }
+
+        /* ==========================================
+           FORMULARFELDER
+           ========================================== */
+        .field-group {
+            margin-bottom: 18px;
+        }
+
+        .field-label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 6px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.84rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--slate-800);
+        }
+
+        .field-hint-inline {
+            font-size: 0.78rem;
+            color: var(--slate-500);
+        }
+
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 12px 14px;
+            font-family: var(--sans);
+            font-size: 0.98rem;
+            color: var(--slate-900);
+            background: #ffffff;
+            border: 1.5px solid var(--line-strong);
+            border-radius: 6px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 112px;
+            line-height: 1.5;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--pine);
+            box-shadow: 0 0 0 3px rgba(30, 70, 53, 0.14);
+        }
+
+        .field-error input,
+        .field-error textarea {
+            border-color: var(--crimson);
+            box-shadow: 0 0 0 3px rgba(143, 41, 32, 0.12);
+        }
+
+        /* ==========================================
+           GIPFEL-VERIFIKATION (PLAKETTE)
+           ========================================== */
+        .verification-plaque {
+            position: relative;
+            background: var(--paper-inner);
+            border: 1.5px solid var(--line-strong);
+            border-radius: 8px;
+            padding: 18px 18px 16px;
+            margin: 22px 0;
+        }
+
+        .plaque-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 12px;
+            margin-bottom: 14px;
+            border-bottom: 1px solid var(--line-border);
+        }
+
+        .plaque-header svg {
+            width: 20px;
+            height: 20px;
+            color: var(--pine);
+            flex-shrink: 0;
+        }
+
+        .plaque-title {
+            font-family: var(--serif);
+            font-weight: 700;
+            font-size: 0.98rem;
+            color: var(--slate-900);
+        }
+
+        .plaque-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 520px) {
+            .plaque-grid { grid-template-columns: 1fr; gap: 14px; }
+        }
+
+        .sub-caption {
+            margin-top: 5px;
+            font-size: 0.76rem;
+            color: var(--slate-500);
+        }
+
+        /* Unsichtbares Schutzfeld gegen Bots */
+        .hp-trap {
+            position: absolute !important;
+            left: -9999px !important;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+
+        /* ==========================================
+           ABSENDE-SCHALTFLÄCHE
+           ========================================== */
+        .submit-button {
+            width: 100%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 22px;
+            font-family: var(--serif);
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: #fbf8f2;
+            background: linear-gradient(180deg, #24533f 0%, #183a2c 100%);
+            border: 1px solid #122c21;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(24, 58, 44, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.1s ease;
+        }
+
+        .submit-button:hover {
+            background: linear-gradient(180deg, #1e4736 0%, #122e22 100%);
+        }
+
+        .submit-button:active {
+            transform: translateY(1px);
+        }
+
+        .submit-button:disabled,
+        .submit-button.btn-disabled {
+            background: #9ca5a0 !important;
+            border-color: #8c9690 !important;
+            color: #eef0ee !important;
+            box-shadow: none !important;
             cursor: not-allowed;
         }
 
+        .submit-button svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* ==========================================
+           STATUSMELDUNGEN & VORSCHAU
+           ========================================== */
         .status-message {
-            margin-top: 15px;
-            padding: 12px;
-            border-radius: 4px;
-            font-weight: bold;
+            margin-top: 18px;
+            padding: 13px 16px;
+            border-radius: 6px;
+            font-size: 0.92rem;
+            font-weight: 600;
             display: none;
             text-align: center;
         }
+
         .status-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background-color: var(--success-bg);
+            color: var(--success);
+            border: 1px solid #b7d7c5;
         }
+
         .status-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            background-color: var(--crimson-bg);
+            color: var(--crimson);
+            border: 1px solid #e4b9b4;
         }
 
         .preview-card {
-            background: #fdfefe;
-            border: 2px solid #27ae60;
+            background: var(--paper-inner);
+            border: 1.5px solid var(--gold);
             border-radius: 8px;
-            padding: 15px;
-            margin-top: 15px;
+            padding: 18px 20px;
+            margin-top: 18px;
             display: none;
         }
+
         .preview-title {
-            color: #27ae60;
-            font-size: 1.1em;
-            font-weight: bold;
-            margin-bottom: 8px;
-            border-bottom: 1px dashed #27ae60;
-            padding-bottom: 5px;
+            font-size: 0.74rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--line-border);
         }
 
-        .eintrag { border-bottom: 1px solid #eee; padding: 10px 0; }
-        .eintrag-header { font-weight: bold; color: #2c3e50; }
-        .eintrag-datum { font-size: 0.8em; color: #7f8c8d; }
+        /* ==========================================
+           CHRONIK DER BISHERIGEN EINTRÄGE
+           ========================================== */
+        .chronicle-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 14px;
+            margin-bottom: 6px;
+            border-bottom: 1px solid var(--line-border);
+        }
+
+        .chronicle-meta h2 {
+            margin: 0;
+            font-family: var(--serif);
+            font-size: 1.35rem;
+            color: var(--slate-900);
+        }
+
+        .entry-count-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: var(--gold-faint);
+            border: 1px solid rgba(166, 124, 55, 0.35);
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--slate-800);
+        }
+
+        .eintrag {
+            position: relative;
+            padding: 18px 0 18px 22px;
+            border-bottom: 1px solid var(--line-border);
+        }
+
+        .eintrag:last-child {
+            border-bottom: none;
+            padding-bottom: 4px;
+        }
+
+        /* Vertikale Chronik-Linie mit Raute */
+        .eintrag::before {
+            content: "";
+            position: absolute;
+            left: 4px;
+            top: 26px;
+            bottom: -18px;
+            width: 1px;
+            background: var(--line-border);
+        }
+
+        .eintrag:last-child::before {
+            display: none;
+        }
+
+        .eintrag::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 23px;
+            width: 9px;
+            height: 9px;
+            transform: rotate(45deg);
+            background: var(--paper-card);
+            border: 1.5px solid var(--gold);
+        }
+
+        .eintrag-top {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .eintrag-header {
+            font-family: var(--serif);
+            font-weight: 700;
+            font-size: 1.06rem;
+            color: var(--slate-900);
+            overflow-wrap: anywhere;
+        }
+
+        .eintrag-datum {
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--slate-500);
+        }
+
+        .eintrag-text {
+            margin: 8px 0 0;
+            color: var(--slate-800);
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 28px 12px;
+            color: var(--slate-500);
+            font-family: var(--serif);
+            font-style: italic;
+        }
+
+        /* ==========================================
+           FUSSZEILE
+           ========================================== */
+        .alpine-footer {
+            text-align: center;
+            padding: 8px 16px 38px;
+            font-size: 0.82rem;
+            color: var(--slate-500);
+        }
+
+        .alpine-footer a {
+            color: var(--pine);
+            text-decoration: none;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(30, 70, 53, 0.3);
+        }
+
+        .alpine-footer a:hover {
+            border-bottom-color: var(--pine);
+        }
     </style>
 </head>
 <body>
 
-    <h1>Gipfelbuch am Gedrechter</h1>
+    <header class="alpine-header">
+        <!-- Dezente topografische Höhenlinien -->
+        <svg class="topo-overlay" viewBox="0 0 800 360" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            <g fill="none" stroke="#ffffff" stroke-width="1.2">
+                <path d="M-40 90 Q 180 20, 410 85 T 850 60" />
+                <path d="M-40 140 Q 200 60, 420 130 T 850 110" />
+                <path d="M-40 195 Q 220 115, 440 180 T 850 165" />
+                <path d="M-40 250 Q 240 175, 460 230 T 850 220" />
+                <ellipse cx="620" cy="95" rx="140" ry="48" />
+                <ellipse cx="620" cy="95" rx="85" ry="26" />
+            </g>
+        </svg>
 
-    <div class="card">
-        <h2>Mein digitaler Eintrag ins Gipfelbuch auf www.wsv.at</h2>
-        
-        <div class="info-box">
-            ℹ️ <strong>Hinweis:</strong> Hinweis: Jeder Eintrag wird vom Wintersportverein Kaltenbach-Ried geprüft und anschließend freigeschaltet. Datum und Uhrzeit werden automatisch hinzugefügt.
+        <div class="crest-wrapper">
+            <!-- Wappen mit traditionellem Gipfelkreuz auf Felsgipfel -->
+            <div class="summit-emblem" aria-hidden="true">
+                <svg width="38" height="38" viewBox="0 0 48 48" fill="none">
+                    <path d="M24 7V31" stroke="#c89e56" stroke-width="2.6" stroke-linecap="round"/>
+                    <path d="M16 15H32" stroke="#c89e56" stroke-width="2.6" stroke-linecap="round"/>
+                    <circle cx="24" cy="15" r="2.2" fill="#fbf8f2"/>
+                    <path d="M9 39L19 28L24 32L30 26L39 39H9Z" stroke="#e6dfd1" stroke-width="1.8" stroke-linejoin="round" fill="rgba(200,158,86,0.18)"/>
+                </svg>
+            </div>
+
+            <div class="club-overline">Wintersportverein Kaltenbach-Ried</div>
+            <h1>Gipfelbuch am Gedrechter</h1>
+            <p class="summit-subtitle">Digitale Gipfelchronik im Zillertal</p>
+
+            <div class="elevation-badge">
+                <span>Gedrechter</span>
+                <span class="dot"></span>
+                <span>2.217 m ü. A.</span>
+                <span class="dot"></span>
+                <span>Zillertaler Alpen</span>
+            </div>
         </div>
 
-        <form id="gipfelForm">
-            <label for="name">Dein Name / Team:</label>
-            <input type="text" id="name" name="name" placeholder="z. B. Max & Moritz" required>
+        <!-- Gestaffelte Gebirgssilhouette mit Berggrat und Schattenseiten -->
+        <svg class="mountain-silhouette" viewBox="0 0 1440 180" preserveAspectRatio="none" aria-hidden="true">
+            <!-- Hintere Gebirgskette im Dunst -->
+            <path d="M0 180 L0 112 L130 68 L255 104 L410 38 L545 88 L690 48 L845 96 L1010 30 L1165 82 L1305 52 L1440 94 L1440 180 Z" fill="rgba(255, 255, 255, 0.08)"/>
+            <!-- Mittleres Massiv mit Licht-/Schattenkante -->
+            <path d="M0 180 L0 132 L185 78 L335 122 L530 44 L710 112 L900 54 L1085 118 L1245 66 L1440 116 L1440 180 Z" fill="rgba(16, 32, 26, 0.55)"/>
+            <path d="M530 44 L595 112 L710 112 Z" fill="rgba(255, 255, 255, 0.07)"/>
+            <path d="M900 54 L965 118 L1085 118 Z" fill="rgba(255, 255, 255, 0.07)"/>
+            <!-- Vordergrund-Kamm im Übergang zum Papierhintergrund -->
+            <path d="M0 180 L0 148 L220 118 L450 146 L735 104 L1010 144 L1235 116 L1440 142 L1440 180 Z" fill="#f4efe6"/>
+        </svg>
+    </header>
 
-            <label for="nachricht">Deine Nachricht:</label>
-            <textarea id="nachricht" name="nachricht" rows="4"></textarea>
+    <main class="main-container">
 
-            <div class="security-box">
-                <label for="summitCode">⛰️ Gipfelbuch-Code (am Gipfelkreuz zu finden):</label>
-                <input type="number" id="summitCode" placeholder="z. B. Jahreszahl eingeben" required>
-
-                <label id="captchaLabel" for="captchaInput" style="margin-top: 12px;">Sicherheitsfrage:</label>
-                <input type="number" id="captchaInput" placeholder="Antwort eingeben" required>
+        <!-- FORMULAR-KARTE -->
+        <section class="ledger-card">
+            <div class="section-header">
+                <span class="section-kicker">Eintrag verfassen</span>
+                <h2 class="section-title">Mein Eintrag ins Gipfelbuch</h2>
+                <div class="ornament-divider" aria-hidden="true">
+                    <span class="ornament-diamond"></span>
+                </div>
             </div>
 
-            <button type="submit" id="submitBtn">Eintrag speichern</button>
-            
-            <div id="statusBox" class="status-message"></div>
-
-            <div id="meinEintragBox" class="preview-card">
-                <div class="preview-title">📌 Mein Gipfelbucheintrag:</div>
-                <div class="eintrag-header" id="previewName"></div>
-                <div class="eintrag-datum" id="previewDatum"></div>
-                <p id="previewText" style="margin-top: 8px; font-style: italic;"></p>
+            <div class="notice-banner">
+                <svg class="notice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <polygon points="14.5 9.5 9.5 11.5 11.5 14.5 14.5 9.5"></polygon>
+                </svg>
+                <div>
+                    <strong>Hinweis zur Freigabe:</strong> Jeder Eintrag wird vom Wintersportverein Kaltenbach-Ried auf www.wsv.at geprüft und anschließend freigeschaltet. Datum und Uhrzeit werden automatisch ergänzt.
+                </div>
             </div>
-        </form>
-    </div>
 
-    <div class="card">
-        <h2>Bisherige Einträge</h2>
-        <div id="eintraegeListe">Lade Einträge...</div>
-    </div>
+            <form id="gipfelForm" novalidate>
+                <div class="field-group" id="group-name">
+                    <div class="field-label-row">
+                        <label for="name">Name / Seilschaft / Team</label>
+                    </div>
+                    <input type="text" id="name" name="name" maxlength="80" placeholder="z. B. Familie Moser oder Bergfreunde Ried" required>
+                </div>
+
+                <div class="field-group" id="group-nachricht">
+                    <div class="field-label-row">
+                        <label for="nachricht">Gipfelgruß / Routennotiz</label>
+                        <span class="field-hint-inline" id="charCount">0 / 1000</span>
+                    </div>
+                    <textarea id="nachricht" name="nachricht" rows="4" maxlength="1000" placeholder="Wie waren Aufstieg, Wetter und Fernsicht am Gedrechter?"></textarea>
+                </div>
+
+                <!-- Unsichtbares Feld gegen Spam-Bots -->
+                <div class="hp-trap" aria-hidden="true">
+                    <label for="website">Website</label>
+                    <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+                </div>
+
+                <div class="verification-plaque">
+                    <div class="plaque-header">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 2v12M8 6h8"/>
+                            <path d="M4 20l5-6 3 3 4-5 4 8H4z"/>
+                        </svg>
+                        <span class="plaque-title">Bestätigung am Gipfelkreuz</span>
+                    </div>
+
+                    <div class="plaque-grid">
+                        <div id="group-summitCode">
+                            <label for="summitCode">Gipfelbuch-Code</label>
+                            <input type="number" id="summitCode" inputmode="numeric" placeholder="Jahreszahl eingeben" required>
+                            <div class="sub-caption">Am Gipfelkreuz abzulesen</div>
+                        </div>
+
+                        <div id="group-captchaInput">
+                            <label id="captchaLabel" for="captchaInput">Sicherheitsfrage</label>
+                            <input type="number" id="captchaInput" inputmode="numeric" placeholder="Ergebnis eingeben" required>
+                            <div class="sub-caption" id="captchaHint">Schutz vor automatischen Einträgen</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn" class="submit-button">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 19l7-7 3 3-7 7-3-3z"/>
+                        <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>
+                        <path d="M2 2l7.5 7.5"/>
+                    </svg>
+                    <span id="submitBtnText">Im Gipfelbuch verewigen</span>
+                </button>
+
+                <div id="statusBox" class="status-message" role="status" aria-live="polite"></div>
+
+                <div id="meinEintragBox" class="preview-card">
+                    <div class="preview-title">Vorschau deines Gipfelbucheintrags</div>
+                    <div class="eintrag-top">
+                        <div class="eintrag-header" id="previewName"></div>
+                        <div class="eintrag-datum" id="previewDatum"></div>
+                    </div>
+                    <p id="previewText" class="eintrag-text" style="font-style: italic;"></p>
+                </div>
+            </form>
+        </section>
+
+        <!-- CHRONIK-KARTE -->
+        <section class="ledger-card">
+            <div class="chronicle-meta">
+                <h2>Gipfelchronik</h2>
+                <span class="entry-count-badge" id="entryCountBadge">Einträge</span>
+            </div>
+            <div id="eintraegeListe">
+                <div class="empty-state">Lade Gipfelchronik …</div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="alpine-footer">
+        Wintersportverein Kaltenbach-Ried · <a href="https://www.wsv.at" target="_blank" rel="noopener">www.wsv.at</a> · Berg Heil am Gedrechter
+    </footer>
 
     <script>
+        const ZEITZONE = 'Europe/Vienna';
         let num1 = 0;
         let num2 = 0;
+        let captchaToken = '';
 
-        function erstelleCaptcha() {
+        function formatDatum(datum) {
+            return new Date(datum).toLocaleString('de-AT', {
+                timeZone: ZEITZONE,
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            }) + ' Uhr';
+        }
+
+        async function erstelleCaptcha() {
+            // Lokale Berechnung als sofortiger Standard
             num1 = Math.floor(Math.random() * 9) + 1;
             num2 = Math.floor(Math.random() * 9) + 1;
+            captchaToken = '';
             document.getElementById('captchaLabel').innerText = `Sicherheitsfrage: Was ist ${num1} + ${num2}?`;
             document.getElementById('captchaInput').value = '';
-            document.getElementById('summitCode').value = '';
+
+            // Server-signiertes Captcha abrufen (verhindert Manipulation durch Bots)
+            try {
+                const res = await fetch('/api/captcha', { cache: 'no-store' });
+                if (res.ok) {
+                    const daten = await res.json();
+                    if (daten && daten.token && daten.frage) {
+                        captchaToken = daten.token;
+                        document.getElementById('captchaLabel').innerText = `Sicherheitsfrage: ${daten.frage}`;
+                    }
+                }
+            } catch (_) {
+                // Lokale Rechenaufgabe bleibt aktiv
+            }
         }
+
+        // Zeichenzähler für die Nachricht
+        document.getElementById('nachricht').addEventListener('input', (e) => {
+            document.getElementById('charCount').innerText = `${e.target.value.length} / 1000`;
+        });
+
+        // Fehlermarkierung beim Tippen zurücksetzen
+        ['name', 'nachricht', 'summitCode', 'captchaInput'].forEach((id) => {
+            const el = document.getElementById(id);
+            const grp = document.getElementById('group-' + id);
+            if (el && grp) {
+                el.addEventListener('input', () => grp.classList.remove('field-error'));
+            }
+        });
 
         async function ladeEintraege() {
             try {
-                const res = await fetch('/api/eintraege');
+                const res = await fetch('/api/eintraege', { cache: 'no-store' });
                 const eintraege = await res.json();
                 const liste = document.getElementById('eintraegeListe');
-                
+                const badge = document.getElementById('entryCountBadge');
+
                 if (!Array.isArray(eintraege) || eintraege.length === 0) {
-                    liste.innerHTML = '<p>Noch keine Einträge vorhanden. Sei der Erste!</p>';
+                    badge.innerText = '0 Einträge';
+                    liste.innerHTML = '<div class="empty-state">Noch keine freigegebenen Einträge vorhanden. Hinterlasse den ersten Gruß am Gipfel.</div>';
                     return;
                 }
 
+                badge.innerText = eintraege.length === 1 ? '1 Eintrag' : `${eintraege.length} Einträge`;
+
                 liste.innerHTML = eintraege.map(e => `
-                    <div class="eintrag">
-                        <div class="eintrag-header">${escapeHtml(e.name)}</div>
-                        <div class="eintrag-datum">${new Date(e.datum).toLocaleString('de-DE')}</div>
-                        <p>${escapeHtml(e.nachricht || '')}</p>
-                    </div>
+                    <article class="eintrag">
+                        <div class="eintrag-top">
+                            <div class="eintrag-header">${escapeHtml(e.name)}</div>
+                            <div class="eintrag-datum">${escapeHtml(formatDatum(e.datum))}</div>
+                        </div>
+                        ${e.nachricht ? `<p class="eintrag-text">${escapeHtml(e.nachricht)}</p>` : ''}
+                    </article>
                 `).join('');
             } catch (err) {
-                document.getElementById('eintraegeListe').innerText = 'Fehler beim Laden der Einträge.';
+                document.getElementById('eintraegeListe').innerHTML = '<div class="empty-state">Die Einträge konnten derzeit nicht geladen werden.</div>';
             }
         }
 
         document.getElementById('gipfelForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const submitBtn = document.getElementById('submitBtn');
+            const submitBtnText = document.getElementById('submitBtnText');
             const statusBox = document.getElementById('statusBox');
             const meinEintragBox = document.getElementById('meinEintragBox');
-            
+
             const name = document.getElementById('name').value;
             const nachricht = document.getElementById('nachricht').value;
             const summitCode = document.getElementById('summitCode').value;
@@ -199,81 +860,79 @@
 
             submitBtn.disabled = true;
             submitBtn.classList.add('btn-disabled');
-            submitBtn.innerText = 'Wird gesendet...';
-            
+            submitBtnText.innerText = 'Wird übertragen …';
+
             statusBox.style.display = 'none';
             statusBox.className = 'status-message';
             meinEintragBox.style.display = 'none';
 
-try {
-    const res = await fetch('/api/eintraege', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            name: name, 
-            nachricht: nachricht, 
-            summitCode: parseInt(summitCode, 10),
-            captchaAnswer: parseInt(captchaAnswer, 10), 
-            captchaExpected: parseInt(expectedSum, 10) 
-        })
-    });
+            try {
+                const res = await fetch('/api/eintraege', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: name,
+                        nachricht: nachricht,
+                        summitCode: parseInt(summitCode, 10),
+                        captchaAnswer: parseInt(captchaAnswer, 10),
+                        captchaExpected: parseInt(expectedSum, 10),
+                        captchaToken: captchaToken,
+                        website: document.getElementById('website').value
+                    })
+                });
 
-    // 🟢 UNBEDINGT BEHALTEN: Liest die Server-Antwort im JSON-Format aus
-    const data = await res.json();
-
-    if (res.ok && data.success) {
-        // Erfolgsfall: Nachricht anzeigen, Formular zurücksetzen etc.
-        // ... (dein bestehender Code hier)
-    } else {
-        // Fehlerfall vom Server (z.B. falsches Captcha oder 400 Bad Request)
-        // ... (dein bestehender Code hier)
-    }
-
-} catch (err) {
-    // 🟢 WICHTIG: Dieser Block schließt den try-Block ab! 
-    // Er fängt Netzwerkfehler ab, damit die Anwendung nicht abstürzt.
-    console.error("Netzwerkfehler:", err);
-}
-
+                const data = await res.json();
 
                 if (res.ok && data.success) {
-                    document.getElementById('previewName').innerText = name;
-                    document.getElementById('previewDatum').innerText = new Date().toLocaleString('de-DE');
-                    document.getElementById('previewText').innerText = nachricht || '(Keine Nachricht eingegeben)';
-                    
+                    document.getElementById('previewName').innerText = name.trim();
+                    document.getElementById('previewDatum').innerText = formatDatum(new Date());
+                    document.getElementById('previewText').innerText = nachricht.trim() || '(Ohne zusätzliche Nachricht)';
+
                     meinEintragBox.style.display = 'block';
 
                     document.getElementById('name').value = '';
                     document.getElementById('nachricht').value = '';
-                    
-                    statusBox.innerText = '✅ Vielen Dank! Dein Eintrag wurde abgesendet, wird vom Wintersportverein geprüft und anschließend freigeschaltet.';
+                    document.getElementById('summitCode').value = '';
+                    document.getElementById('charCount').innerText = '0 / 1000';
+
+                    statusBox.innerText = 'Vielen Dank! Dein Eintrag wurde gespeichert, wird vom Wintersportverein geprüft und anschließend freigeschaltet.';
                     statusBox.classList.add('status-success');
                     statusBox.style.display = 'block';
 
                     erstelleCaptcha();
                     ladeEintraege();
                 } else {
-                    statusBox.innerText = '❌ Fehler: ' + (data.error || 'Eintrag konnte nicht gespeichert werden.');
+                    statusBox.innerText = data.error || 'Eintrag konnte nicht gespeichert werden.';
                     statusBox.classList.add('status-error');
                     statusBox.style.display = 'block';
-                    
+
+                    if (data.feld) {
+                        const grp = document.getElementById('group-' + data.feld);
+                        if (grp) grp.classList.add('field-error');
+                    }
+
                     erstelleCaptcha();
                 }
             } catch (err) {
-                statusBox.innerText = '❌ Netzwerkfehler beim Speichern. Bitte versuche es später erneut.';
+                statusBox.innerText = 'Netzwerkfehler beim Speichern. Bitte versuche es später erneut.';
                 statusBox.classList.add('status-error');
                 statusBox.style.display = 'block';
             } finally {
                 setTimeout(() => {
                     submitBtn.disabled = false;
                     submitBtn.classList.remove('btn-disabled');
-                    submitBtn.innerText = 'Eintrag speichern';
-                }, 3000);
+                    submitBtnText.innerText = 'Im Gipfelbuch verewigen';
+                }, 2500);
             }
         });
 
         function escapeHtml(str) {
-            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
         }
 
         erstelleCaptcha();
