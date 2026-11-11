@@ -52,7 +52,7 @@
             position: relative;
             background: linear-gradient(175deg, #0b1613 0%, #152822 48%, #244037 82%, #3a5a4e 100%);
             color: #f7f3eb;
-            padding: 46px 20px 140px;
+            padding: 26px 20px 140px;
             text-align: center;
             overflow: hidden;
         }
@@ -65,6 +65,71 @@
             pointer-events: none;
             width: 100%;
             height: 100%;
+        }
+
+        /* ==========================================
+           SPRACHENMENÜ (DE · EN · NL · IT)
+           ========================================== */
+        .lang-bar {
+            position: relative;
+            z-index: 3;
+            max-width: 680px;
+            margin: 0 auto 22px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        @media (max-width: 520px) {
+            .lang-bar { justify-content: center; margin-bottom: 18px; }
+        }
+
+        .lang-switcher {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px;
+            border-radius: 999px;
+            background: rgba(11, 22, 19, 0.62);
+            border: 1px solid rgba(200, 158, 86, 0.42);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+        }
+
+        .lang-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 11px;
+            border: 1px solid transparent;
+            border-radius: 999px;
+            background: transparent;
+            color: #d6cfc2;
+            font-family: var(--sans);
+            font-size: 0.74rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+        }
+
+        .lang-btn:hover {
+            color: #fbf8f2;
+            background: rgba(200, 158, 86, 0.14);
+        }
+
+        .lang-btn.active {
+            background: rgba(200, 158, 86, 0.26);
+            border-color: rgba(200, 158, 86, 0.65);
+            color: #fbf8f2;
+        }
+
+        .lang-flag {
+            width: 16px;
+            height: 11px;
+            border-radius: 2px;
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.22);
+            flex-shrink: 0;
+            display: block;
         }
 
         .crest-wrapper {
@@ -139,6 +204,8 @@
             letter-spacing: 0.12em;
             text-transform: uppercase;
             color: #e6dfd1;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
         .elevation-badge .dot {
@@ -617,6 +684,45 @@
             </g>
         </svg>
 
+        <!-- Sprachumschalter (Deutsch, Englisch, Niederländisch, Italienisch) -->
+        <div class="lang-bar">
+            <nav class="lang-switcher" aria-label="Language selection">
+                <button type="button" class="lang-btn active" data-lang="de" onclick="setLanguage('de')" title="Deutsch">
+                    <svg class="lang-flag" viewBox="0 0 18 12" aria-hidden="true">
+                        <rect width="18" height="4" y="0" fill="#c8102e"/>
+                        <rect width="18" height="4" y="4" fill="#ffffff"/>
+                        <rect width="18" height="4" y="8" fill="#c8102e"/>
+                    </svg>
+                    <span>DE</span>
+                </button>
+                <button type="button" class="lang-btn" data-lang="en" onclick="setLanguage('en')" title="English">
+                    <svg class="lang-flag" viewBox="0 0 18 12" aria-hidden="true">
+                        <rect width="18" height="12" fill="#012169"/>
+                        <path d="M0,0 L18,12 M18,0 L0,12" stroke="#ffffff" stroke-width="2.2"/>
+                        <path d="M9,0 V12 M0,6 H18" stroke="#ffffff" stroke-width="3.6"/>
+                        <path d="M9,0 V12 M0,6 H18" stroke="#c8102e" stroke-width="2"/>
+                    </svg>
+                    <span>EN</span>
+                </button>
+                <button type="button" class="lang-btn" data-lang="nl" onclick="setLanguage('nl')" title="Nederlands">
+                    <svg class="lang-flag" viewBox="0 0 18 12" aria-hidden="true">
+                        <rect width="18" height="4" y="0" fill="#ae1c28"/>
+                        <rect width="18" height="4" y="4" fill="#ffffff"/>
+                        <rect width="18" height="4" y="8" fill="#21468b"/>
+                    </svg>
+                    <span>NL</span>
+                </button>
+                <button type="button" class="lang-btn" data-lang="it" onclick="setLanguage('it')" title="Italiano">
+                    <svg class="lang-flag" viewBox="0 0 18 12" aria-hidden="true">
+                        <rect width="6" height="12" x="0" fill="#008c45"/>
+                        <rect width="6" height="12" x="6" fill="#f4f5f0"/>
+                        <rect width="6" height="12" x="12" fill="#cd212a"/>
+                    </svg>
+                    <span>IT</span>
+                </button>
+            </nav>
+        </div>
+
         <div class="crest-wrapper">
             <!-- Wappen mit traditionellem Gipfelkreuz auf Felsgipfel -->
             <div class="summit-emblem" aria-hidden="true">
@@ -628,16 +734,16 @@
                 </svg>
             </div>
 
-            <div class="club-overline">Wintersportverein Kaltenbach-Ried</div>
-            <h1>Gipfelbuch am Gedrechter</h1>
-            <p class="summit-subtitle">Digitale Gipfelchronik im Zillertal</p>
+            <div class="club-overline" id="txt-clubOverline">Wintersportverein Kaltenbach-Ried</div>
+            <h1 id="txt-mainTitle">Gipfelbuch am Gedrechter</h1>
+            <p class="summit-subtitle" id="txt-subtitle">Digitale Gipfelchronik im Zillertal</p>
 
             <div class="elevation-badge">
                 <span>Gedrechter</span>
                 <span class="dot"></span>
-                <span>2.217 m ü. A.</span>
+                <span id="txt-elevation">2.217 m ü. A.</span>
                 <span class="dot"></span>
-                <span>Zillertaler Alpen</span>
+                <span id="txt-alps">Zillertaler Alpen</span>
             </div>
         </div>
 
@@ -659,8 +765,8 @@
         <!-- FORMULAR-KARTE -->
         <section class="ledger-card">
             <div class="section-header">
-                <span class="section-kicker">Eintrag verfassen</span>
-                <h2 class="section-title">Mein Eintrag ins Gipfelbuch</h2>
+                <span class="section-kicker" id="txt-formKicker">Eintrag verfassen</span>
+                <h2 class="section-title" id="txt-formTitle">Mein Eintrag ins Gipfelbuch</h2>
                 <div class="ornament-divider" aria-hidden="true">
                     <span class="ornament-diamond"></span>
                 </div>
@@ -671,7 +777,7 @@
                     <circle cx="12" cy="12" r="9"></circle>
                     <polygon points="14.5 9.5 9.5 11.5 11.5 14.5 14.5 9.5"></polygon>
                 </svg>
-                <div>
+                <div id="txt-noticeBox">
                     <strong>Automatische Prüfung:</strong> Dein Eintrag wird beim Absenden automatisch auf unzulässige Inhalte geprüft und bei Unbedenklichkeit <strong>sofort veröffentlicht</strong>. Datum und Uhrzeit werden automatisch ergänzt.
                 </div>
             </div>
@@ -679,14 +785,14 @@
             <form id="gipfelForm" novalidate>
                 <div class="field-group" id="group-name">
                     <div class="field-label-row">
-                        <label for="name">Name / Seilschaft / Team</label>
+                        <label for="name" id="txt-labelName">Name / Seilschaft / Team</label>
                     </div>
                     <input type="text" id="name" name="name" maxlength="80" placeholder="z. B. Familie Moser oder Bergfreunde Ried" required>
                 </div>
 
                 <div class="field-group" id="group-nachricht">
                     <div class="field-label-row">
-                        <label for="nachricht">Gipfelgruß / Routennotiz</label>
+                        <label for="nachricht" id="txt-labelMsg">Gipfelgruß / Routennotiz</label>
                         <span class="field-hint-inline" id="charCount">0 / 1000</span>
                     </div>
                     <textarea id="nachricht" name="nachricht" rows="4" maxlength="1000" placeholder="Wie waren Aufstieg, Wetter und Fernsicht am Gedrechter?"></textarea>
@@ -704,14 +810,14 @@
                             <path d="M12 2v12M8 6h8"/>
                             <path d="M4 20l5-6 3 3 4-5 4 8H4z"/>
                         </svg>
-                        <span class="plaque-title">Bestätigung am Gipfelkreuz</span>
+                        <span class="plaque-title" id="txt-plaqueTitle">Bestätigung am Gipfelkreuz</span>
                     </div>
 
                     <div class="plaque-grid">
                         <div id="group-summitCode">
-                            <label for="summitCode">Gipfelbuch-Code</label>
+                            <label for="summitCode" id="txt-labelCode">Gipfelbuch-Code</label>
                             <input type="number" id="summitCode" inputmode="numeric" placeholder="Jahreszahl eingeben" required>
-                            <div class="sub-caption">Am Gipfelkreuz abzulesen</div>
+                            <div class="sub-caption" id="txt-hintCode">Am Gipfelkreuz abzulesen</div>
                         </div>
 
                         <div id="group-captchaInput">
@@ -734,7 +840,7 @@
                 <div id="statusBox" class="status-message" role="status" aria-live="polite"></div>
 
                 <div id="meinEintragBox" class="preview-card">
-                    <div class="preview-title">Vorschau deines Gipfelbucheintrags</div>
+                    <div class="preview-title" id="txt-previewTitle">Vorschau deines Gipfelbucheintrags</div>
                     <div class="eintrag-top">
                         <div class="eintrag-header" id="previewName"></div>
                         <div class="eintrag-datum" id="previewDatum"></div>
@@ -747,18 +853,18 @@
         <!-- CHRONIK-KARTE -->
         <section class="ledger-card">
             <div class="chronicle-meta">
-                <h2>Gipfelchronik</h2>
+                <h2 id="txt-chronicleTitle">Gipfelchronik</h2>
                 <span class="entry-count-badge" id="entryCountBadge">Einträge</span>
             </div>
             <div id="eintraegeListe">
-                <div class="empty-state">Lade Gipfelchronik …</div>
+                <div class="empty-state" id="txt-loadingChronicle">Lade Gipfelchronik …</div>
             </div>
         </section>
 
     </main>
 
     <footer class="alpine-footer">
-        Wintersportverein Kaltenbach-Ried · <a href="https://www.wsv.at" target="_blank" rel="noopener">www.wsv.at</a> · Berg Heil am Gedrechter
+        <span id="txt-footerClub">Wintersportverein Kaltenbach-Ried</span> · <a href="https://www.wsv.at" target="_blank" rel="noopener">www.wsv.at</a> · <span id="txt-footerGreeting">Berg Heil am Gedrechter</span>
     </footer>
 
     <script>
@@ -766,34 +872,289 @@
         let num1 = 0;
         let num2 = 0;
         let captchaToken = '';
+        let currentLang = localStorage.getItem('gipfelbuch_lang') || 'de';
+        let geladeneEintraege = null;
+        let ladeFehler = false;
+
+        // ==========================================
+        // SPRACHWÖRTERBUCH (DE · EN · NL · IT)
+        // ==========================================
+        const TRANSLATIONS = {
+            de: {
+                locale: 'de-AT',
+                timeSuffix: ' Uhr',
+                pageTitle: 'Gipfelbuch am Gedrechter · WSV Kaltenbach-Ried',
+                clubOverline: 'Wintersportverein Kaltenbach-Ried',
+                mainTitle: 'Gipfelbuch am Gedrechter',
+                subtitle: 'Digitale Gipfelchronik im Zillertal',
+                elevation: '2.217 m ü. A.',
+                alps: 'Zillertaler Alpen',
+                formKicker: 'Eintrag verfassen',
+                formTitle: 'Mein Eintrag ins Gipfelbuch',
+                noticeBox: '<strong>Automatische Prüfung:</strong> Dein Eintrag wird beim Absenden automatisch auf unzulässige Inhalte geprüft und bei Unbedenklichkeit <strong>sofort veröffentlicht</strong>. Datum und Uhrzeit werden automatisch ergänzt.',
+                labelName: 'Name / Seilschaft / Team',
+                placeholderName: 'z. B. Familie Moser oder Bergfreunde Ried',
+                labelMsg: 'Gipfelgruß / Routennotiz',
+                placeholderMsg: 'Wie waren Aufstieg, Wetter und Fernsicht am Gedrechter?',
+                plaqueTitle: 'Bestätigung am Gipfelkreuz',
+                labelCode: 'Gipfelbuch-Code',
+                placeholderCode: 'Jahreszahl eingeben',
+                hintCode: 'Am Gipfelkreuz abzulesen',
+                captchaLabel: (a, b) => `Sicherheitsfrage: Was ergibt ${a} + ${b}?`,
+                placeholderCaptcha: 'Ergebnis eingeben',
+                hintCaptcha: 'Schutz vor automatischen Einträgen',
+                submitBtn: 'Im Gipfelbuch verewigen',
+                submittingBtn: 'Wird übertragen …',
+                previewTitle: 'Vorschau deines Gipfelbucheintrags',
+                noMessage: '(Ohne zusätzliche Nachricht)',
+                chronicleTitle: 'Gipfelchronik',
+                entriesBadgeDefault: 'Einträge',
+                entriesSingle: '1 Eintrag',
+                entriesMulti: (n) => `${n} Einträge`,
+                loadingChronicle: 'Lade Gipfelchronik …',
+                emptyChronicle: 'Noch keine freigegebenen Einträge vorhanden. Hinterlasse den ersten Gruß am Gipfel.',
+                errorChronicle: 'Die Einträge konnten derzeit nicht geladen werden.',
+                footerClub: 'Wintersportverein Kaltenbach-Ried',
+                footerGreeting: 'Berg Heil am Gedrechter',
+                msgPublished: 'Vielen Dank! Dein Eintrag wurde direkt im Gipfelbuch veröffentlicht.',
+                msgHeld: 'Dein Eintrag wurde gespeichert und zur Prüfung an die Moderation weitergeleitet. Sobald er bestätigt wurde, erscheint er im Gipfelbuch.',
+                errEmptyName: 'Bitte gib deinen Namen ein.',
+                errLongName: 'Der Name darf maximal 80 Zeichen lang sein.',
+                errLongMsg: 'Die Nachricht darf maximal 1000 Zeichen lang sein.',
+                errSummitCode: 'Falscher Gipfel-Code eingetragen.',
+                errCaptcha: 'Sicherheitsfrage wurde falsch beantwortet.',
+                errGeneric: 'Eintrag konnte nicht gespeichert werden.',
+                errNetwork: 'Netzwerkfehler beim Speichern. Bitte versuche es später erneut.'
+            },
+            en: {
+                locale: 'en-GB',
+                timeSuffix: '',
+                pageTitle: 'Summit Register at Gedrechter · WSV Kaltenbach-Ried',
+                clubOverline: 'Winter Sports Club Kaltenbach-Ried',
+                mainTitle: 'Summit Register at Gedrechter',
+                subtitle: 'Digital Summit Chronicle in the Zillertal',
+                elevation: '2,217 m a.s.l.',
+                alps: 'Zillertal Alps',
+                formKicker: 'Sign the Register',
+                formTitle: 'My Summit Book Entry',
+                noticeBox: '<strong>Automatic Verification:</strong> Your entry is checked automatically when submitted and <strong>published immediately</strong> if appropriate. Date and time are added automatically.',
+                labelName: 'Name / Climbing Party / Team',
+                placeholderName: 'e.g. Family Miller or Zillertal Hikers',
+                labelMsg: 'Summit Greeting / Route Note',
+                placeholderMsg: 'How was the climb, weather and view at the Gedrechter?',
+                plaqueTitle: 'Verification at the Summit Cross',
+                labelCode: 'Summit Code',
+                placeholderCode: 'Enter year',
+                hintCode: 'Found on the summit cross',
+                captchaLabel: (a, b) => `Security question: What is ${a} + ${b}?`,
+                placeholderCaptcha: 'Enter result',
+                hintCaptcha: 'Protection against automated spam',
+                submitBtn: 'Record in Summit Register',
+                submittingBtn: 'Submitting …',
+                previewTitle: 'Preview of your summit entry',
+                noMessage: '(No additional message)',
+                chronicleTitle: 'Summit Chronicle',
+                entriesBadgeDefault: 'Entries',
+                entriesSingle: '1 Entry',
+                entriesMulti: (n) => `${n} Entries`,
+                loadingChronicle: 'Loading summit chronicle …',
+                emptyChronicle: 'No entries yet. Be the first to leave a greeting at the summit!',
+                errorChronicle: 'Entries could not be loaded at this time.',
+                footerClub: 'Winter Sports Club Kaltenbach-Ried',
+                footerGreeting: 'Happy Mountaineering at Gedrechter',
+                msgPublished: 'Thank you! Your entry has been published directly in the summit register.',
+                msgHeld: 'Your entry has been saved and forwarded to moderation for review. Once approved, it will appear in the summit register.',
+                errEmptyName: 'Please enter your name.',
+                errLongName: 'Name must not exceed 80 characters.',
+                errLongMsg: 'Message must not exceed 1000 characters.',
+                errSummitCode: 'Incorrect summit code entered.',
+                errCaptcha: 'Security question answered incorrectly.',
+                errGeneric: 'Entry could not be saved.',
+                errNetwork: 'Network error while saving. Please try again later.'
+            },
+            nl: {
+                locale: 'nl-NL',
+                timeSuffix: '',
+                pageTitle: 'Topboek op de Gedrechter · WSV Kaltenbach-Ried',
+                clubOverline: 'Wintersportvereniging Kaltenbach-Ried',
+                mainTitle: 'Topboek op de Gedrechter',
+                subtitle: 'Digitale topkroniek in het Zillertal',
+                elevation: '2.217 m hoogte',
+                alps: 'Zillertaler Alpen',
+                formKicker: 'Bericht schrijven',
+                formTitle: 'Mijn inschrijving in het topboek',
+                noticeBox: '<strong>Automatische controle:</strong> Je bericht wordt bij het verzenden automatisch gecontroleerd en bij goedkeuring <strong>direct gepubliceerd</strong>. Datum en tijd worden automatisch toegevoegd.',
+                labelName: 'Naam / Reisgezelschap / Team',
+                placeholderName: 'bijv. Familie De Vries of Bergvrienden',
+                labelMsg: 'Topgroet / Routenotitie',
+                placeholderMsg: 'Hoe waren de beklimming, het weer en het uitzicht op de Gedrechter?',
+                plaqueTitle: 'Bevestiging bij het topkruis',
+                labelCode: 'Topboek-code',
+                placeholderCode: 'Jaartal invoeren',
+                hintCode: 'Te vinden op het topkruis',
+                captchaLabel: (a, b) => `Beveiligingsvraag: Wat is ${a} + ${b}?`,
+                placeholderCaptcha: 'Antwoord invoeren',
+                hintCaptcha: 'Bescherming tegen automatische spam',
+                submitBtn: 'In het topboek vereeuwigen',
+                submittingBtn: 'Wordt verzonden …',
+                previewTitle: 'Voorbeeld van je topboekbericht',
+                noMessage: '(Zonder extra bericht)',
+                chronicleTitle: 'Topkroniek',
+                entriesBadgeDefault: 'Berichten',
+                entriesSingle: '1 Bericht',
+                entriesMulti: (n) => `${n} Berichten`,
+                loadingChronicle: 'Topkroniek laden …',
+                emptyChronicle: 'Nog geen berichten aanwezig. Laat als eerste een groet achter op de top!',
+                errorChronicle: 'De berichten konden momenteel niet worden geladen.',
+                footerClub: 'Wintersportvereniging Kaltenbach-Ried',
+                footerGreeting: 'Berg Heil op de Gedrechter',
+                msgPublished: 'Hartelijk dank! Je bericht is direct in het topboek gepubliceerd.',
+                msgHeld: 'Je bericht is opgeslagen en doorgestuurd naar de moderatie ter controle. Zodra het is bevestigd, verschijnt het in het topboek.',
+                errEmptyName: 'Vul alstublieft je naam in.',
+                errLongName: 'De naam mag maximaal 80 tekens bevatten.',
+                errLongMsg: 'Het bericht mag maximaal 1000 tekens bevatten.',
+                errSummitCode: 'Onjuiste topboek-code ingevoerd.',
+                errCaptcha: 'Beveiligingsvraag onjuist beantwoord.',
+                errGeneric: 'Bericht kon niet worden opgeslagen.',
+                errNetwork: 'Netwerkfout bij het opslaan. Probeer het later opnieuw.'
+            },
+            it: {
+                locale: 'it-IT',
+                timeSuffix: '',
+                pageTitle: 'Libro di vetta sul Gedrechter · WSV Kaltenbach-Ried',
+                clubOverline: 'Associazione Sport Invernali Kaltenbach-Ried',
+                mainTitle: 'Libro di vetta sul Gedrechter',
+                subtitle: 'Cronaca digitale di vetta nella Zillertal',
+                elevation: '2.217 m s.l.m.',
+                alps: 'Alpi della Zillertal',
+                formKicker: 'Scrivi una nota',
+                formTitle: 'Il mio messaggio nel libro di vetta',
+                noticeBox: '<strong>Verifica automatica:</strong> Il tuo messaggio viene verificato automaticamente all\'invio e, se idoneo, <strong>pubblicato immediatamente</strong>. Data e ora vengono aggiunte in automatico.',
+                labelName: 'Nome / Cordata / Gruppo',
+                placeholderName: 'es. Famiglia Rossi o Amici della Montagna',
+                labelMsg: 'Saluto di vetta / Nota sull\'itinerario',
+                placeholderMsg: 'Com\'erano la salita, il meteo e il panorama sul Gedrechter?',
+                plaqueTitle: 'Conferma alla croce di vetta',
+                labelCode: 'Codice del libro di vetta',
+                placeholderCode: 'Inserisci l\'anno',
+                hintCode: 'Leggibile sulla croce di vetta',
+                captchaLabel: (a, b) => `Domanda di sicurezza: Quanto fa ${a} + ${b}?`,
+                placeholderCaptcha: 'Inserisci il risultato',
+                hintCaptcha: 'Protezione contro gli invii automatici',
+                submitBtn: 'Firma il libro di vetta',
+                submittingBtn: 'Invio in corso …',
+                previewTitle: 'Anteprima del tuo messaggio',
+                noMessage: '(Nessun messaggio aggiuntivo)',
+                chronicleTitle: 'Cronaca di vetta',
+                entriesBadgeDefault: 'Messaggi',
+                entriesSingle: '1 Messaggio',
+                entriesMulti: (n) => `${n} Messaggi`,
+                loadingChronicle: 'Caricamento cronaca di vetta …',
+                emptyChronicle: 'Ancora nessun messaggio presente. Lascia il primo saluto in vetta!',
+                errorChronicle: 'Al momento non è stato possibile caricare i messaggi.',
+                footerClub: 'Associazione Sport Invernali Kaltenbach-Ried',
+                footerGreeting: 'Buona montagna sul Gedrechter',
+                msgPublished: 'Grazie mille! Il tuo messaggio è stato pubblicato direttamente nel libro di vetta.',
+                msgHeld: 'Il tuo messaggio è stato salvato e inviato alla moderazione per la verifica. Appena confermato, apparirà nel libro di vetta.',
+                errEmptyName: 'Per favore inserisci il tuo nome.',
+                errLongName: 'Il nome può contenere al massimo 80 caratteri.',
+                errLongMsg: 'Il messaggio può contenere al massimo 1000 caratteri.',
+                errSummitCode: 'Codice del libro di vetta errato.',
+                errCaptcha: 'Risposta errata alla domanda di sicurezza.',
+                errGeneric: 'Impossibile salvare il messaggio.',
+                errNetwork: 'Errore di rete durante il salvataggio. Riprova più tardi.'
+            }
+        };
+
+        function t() {
+            return TRANSLATIONS[currentLang] || TRANSLATIONS.de;
+        }
+
+        function setLanguage(lang) {
+            if (!TRANSLATIONS[lang]) lang = 'de';
+            currentLang = lang;
+            localStorage.setItem('gipfelbuch_lang', lang);
+            document.documentElement.lang = lang;
+
+            const dict = t();
+            document.title = dict.pageTitle;
+
+            // Aktiven Sprachbutton hervorheben
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === lang);
+            });
+
+            // Statische Texte aktualisieren
+            document.getElementById('txt-clubOverline').innerText = dict.clubOverline;
+            document.getElementById('txt-mainTitle').innerText = dict.mainTitle;
+            document.getElementById('txt-subtitle').innerText = dict.subtitle;
+            document.getElementById('txt-elevation').innerText = dict.elevation;
+            document.getElementById('txt-alps').innerText = dict.alps;
+            document.getElementById('txt-formKicker').innerText = dict.formKicker;
+            document.getElementById('txt-formTitle').innerText = dict.formTitle;
+            document.getElementById('txt-noticeBox').innerHTML = dict.noticeBox;
+            document.getElementById('txt-labelName').innerText = dict.labelName;
+            document.getElementById('name').placeholder = dict.placeholderName;
+            document.getElementById('txt-labelMsg').innerText = dict.labelMsg;
+            document.getElementById('nachricht').placeholder = dict.placeholderMsg;
+            document.getElementById('txt-plaqueTitle').innerText = dict.plaqueTitle;
+            document.getElementById('txt-labelCode').innerText = dict.labelCode;
+            document.getElementById('summitCode').placeholder = dict.placeholderCode;
+            document.getElementById('txt-hintCode').innerText = dict.hintCode;
+            document.getElementById('captchaInput').placeholder = dict.placeholderCaptcha;
+            document.getElementById('captchaHint').innerText = dict.hintCaptcha;
+            document.getElementById('txt-previewTitle').innerText = dict.previewTitle;
+            document.getElementById('txt-chronicleTitle').innerText = dict.chronicleTitle;
+            document.getElementById('txt-footerClub').innerText = dict.footerClub;
+            document.getElementById('txt-footerGreeting').innerText = dict.footerGreeting;
+
+            const submitBtn = document.getElementById('submitBtn');
+            document.getElementById('submitBtnText').innerText = submitBtn.disabled ? dict.submittingBtn : dict.submitBtn;
+
+            if (num1 && num2) {
+                document.getElementById('captchaLabel').innerText = dict.captchaLabel(num1, num2);
+            }
+
+            // Chronik-Liste in gewählter Sprache neu darstellen
+            renderEintraege();
+        }
 
         function formatDatum(datum) {
-            return new Date(datum).toLocaleString('de-AT', {
+            const dict = t();
+            return new Date(datum).toLocaleString(dict.locale, {
                 timeZone: ZEITZONE,
                 day: '2-digit',
                 month: '2-digit',
                 year: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit'
-            }) + ' Uhr';
+            }) + dict.timeSuffix;
         }
 
         async function erstelleCaptcha() {
-            // Lokale Berechnung als sofortiger Standard
             num1 = Math.floor(Math.random() * 9) + 1;
             num2 = Math.floor(Math.random() * 9) + 1;
             captchaToken = '';
-            document.getElementById('captchaLabel').innerText = `Sicherheitsfrage: Was ist ${num1} + ${num2}?`;
+            document.getElementById('captchaLabel').innerText = t().captchaLabel(num1, num2);
             document.getElementById('captchaInput').value = '';
 
-            // Server-signiertes Captcha abrufen (verhindert Manipulation durch Bots)
             try {
                 const res = await fetch('/api/captcha', { cache: 'no-store' });
                 if (res.ok) {
                     const daten = await res.json();
-                    if (daten && daten.token && daten.frage) {
+                    if (daten && daten.token) {
                         captchaToken = daten.token;
-                        document.getElementById('captchaLabel').innerText = `Sicherheitsfrage: ${daten.frage}`;
+                        if (typeof daten.a === 'number' && typeof daten.b === 'number') {
+                            num1 = daten.a;
+                            num2 = daten.b;
+                        } else if (daten.frage) {
+                            const m = daten.frage.match(/(\d+)\s*\+\s*(\d+)/);
+                            if (m) {
+                                num1 = parseInt(m[1], 10);
+                                num2 = parseInt(m[2], 10);
+                            }
+                        }
+                        document.getElementById('captchaLabel').innerText = t().captchaLabel(num1, num2);
                     }
                 }
             } catch (_) {
@@ -815,38 +1176,73 @@
             }
         });
 
+        function renderEintraege() {
+            const dict = t();
+            const liste = document.getElementById('eintraegeListe');
+            const badge = document.getElementById('entryCountBadge');
+
+            if (ladeFehler) {
+                badge.innerText = dict.entriesBadgeDefault;
+                liste.innerHTML = `<div class="empty-state">${escapeHtml(dict.errorChronicle)}</div>`;
+                return;
+            }
+
+            if (geladeneEintraege === null) {
+                badge.innerText = dict.entriesBadgeDefault;
+                liste.innerHTML = `<div class="empty-state">${escapeHtml(dict.loadingChronicle)}</div>`;
+                return;
+            }
+
+            if (!Array.isArray(geladeneEintraege) || geladeneEintraege.length === 0) {
+                badge.innerText = dict.entriesMulti(0);
+                liste.innerHTML = `<div class="empty-state">${escapeHtml(dict.emptyChronicle)}</div>`;
+                return;
+            }
+
+            badge.innerText = geladeneEintraege.length === 1
+                ? dict.entriesSingle
+                : dict.entriesMulti(geladeneEintraege.length);
+
+            liste.innerHTML = geladeneEintraege.map(e => `
+                <article class="eintrag">
+                    <div class="eintrag-top">
+                        <div class="eintrag-header">${escapeHtml(e.name)}</div>
+                        <div class="eintrag-datum">${escapeHtml(formatDatum(e.datum))}</div>
+                    </div>
+                    ${e.nachricht ? `<p class="eintrag-text">${escapeHtml(e.nachricht)}</p>` : ''}
+                </article>
+            `).join('');
+        }
+
         async function ladeEintraege() {
             try {
+                ladeFehler = false;
                 const res = await fetch('/api/eintraege', { cache: 'no-store' });
-                const eintraege = await res.json();
-                const liste = document.getElementById('eintraegeListe');
-                const badge = document.getElementById('entryCountBadge');
-
-                if (!Array.isArray(eintraege) || eintraege.length === 0) {
-                    badge.innerText = '0 Einträge';
-                    liste.innerHTML = '<div class="empty-state">Noch keine freigegebenen Einträge vorhanden. Hinterlasse den ersten Gruß am Gipfel.</div>';
-                    return;
-                }
-
-                badge.innerText = eintraege.length === 1 ? '1 Eintrag' : `${eintraege.length} Einträge`;
-
-                liste.innerHTML = eintraege.map(e => `
-                    <article class="eintrag">
-                        <div class="eintrag-top">
-                            <div class="eintrag-header">${escapeHtml(e.name)}</div>
-                            <div class="eintrag-datum">${escapeHtml(formatDatum(e.datum))}</div>
-                        </div>
-                        ${e.nachricht ? `<p class="eintrag-text">${escapeHtml(e.nachricht)}</p>` : ''}
-                    </article>
-                `).join('');
+                geladeneEintraege = await res.json();
+                renderEintraege();
             } catch (err) {
-                document.getElementById('eintraegeListe').innerHTML = '<div class="empty-state">Die Einträge konnten derzeit nicht geladen werden.</div>';
+                ladeFehler = true;
+                renderEintraege();
+            }
+        }
+
+        function uebersetzeFehler(data) {
+            const dict = t();
+            if (!data) return dict.errGeneric;
+            switch (data.code) {
+                case 'EMPTY_NAME': return dict.errEmptyName;
+                case 'LONG_NAME': return dict.errLongName;
+                case 'LONG_MSG': return dict.errLongMsg;
+                case 'WRONG_SUMMIT_CODE': return dict.errSummitCode;
+                case 'WRONG_CAPTCHA': return dict.errCaptcha;
+                default: return currentLang === 'de' && data.error ? data.error : dict.errGeneric;
             }
         }
 
         document.getElementById('gipfelForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
+            const dict = t();
             const submitBtn = document.getElementById('submitBtn');
             const submitBtnText = document.getElementById('submitBtnText');
             const statusBox = document.getElementById('statusBox');
@@ -860,7 +1256,7 @@
 
             submitBtn.disabled = true;
             submitBtn.classList.add('btn-disabled');
-            submitBtnText.innerText = 'Wird übertragen …';
+            submitBtnText.innerText = dict.submittingBtn;
 
             statusBox.style.display = 'none';
             statusBox.className = 'status-message';
@@ -886,7 +1282,7 @@
                 if (res.ok && data.success) {
                     document.getElementById('previewName').innerText = name.trim();
                     document.getElementById('previewDatum').innerText = formatDatum(new Date());
-                    document.getElementById('previewText').innerText = nachricht.trim() || '(Ohne zusätzliche Nachricht)';
+                    document.getElementById('previewText').innerText = nachricht.trim() || t().noMessage;
 
                     meinEintragBox.style.display = 'block';
 
@@ -895,16 +1291,14 @@
                     document.getElementById('summitCode').value = '';
                     document.getElementById('charCount').innerText = '0 / 1000';
 
-                    statusBox.innerText = data.message || (data.direktFreigegeben
-                        ? 'Vielen Dank! Dein Eintrag wurde direkt im Gipfelbuch veröffentlicht.'
-                        : 'Dein Eintrag wurde gespeichert und zur Prüfung an die Moderation weitergeleitet.');
+                    statusBox.innerText = data.direktFreigegeben === false ? t().msgHeld : t().msgPublished;
                     statusBox.classList.add('status-success');
                     statusBox.style.display = 'block';
 
                     erstelleCaptcha();
                     ladeEintraege();
                 } else {
-                    statusBox.innerText = data.error || 'Eintrag konnte nicht gespeichert werden.';
+                    statusBox.innerText = uebersetzeFehler(data);
                     statusBox.classList.add('status-error');
                     statusBox.style.display = 'block';
 
@@ -916,14 +1310,14 @@
                     erstelleCaptcha();
                 }
             } catch (err) {
-                statusBox.innerText = 'Netzwerkfehler beim Speichern. Bitte versuche es später erneut.';
+                statusBox.innerText = t().errNetwork;
                 statusBox.classList.add('status-error');
                 statusBox.style.display = 'block';
             } finally {
                 setTimeout(() => {
                     submitBtn.disabled = false;
                     submitBtn.classList.remove('btn-disabled');
-                    submitBtnText.innerText = 'Im Gipfelbuch verewigen';
+                    submitBtnText.innerText = t().submitBtn;
                 }, 2500);
             }
         });
@@ -937,6 +1331,7 @@
                 .replace(/'/g, "&#39;");
         }
 
+        setLanguage(currentLang);
         erstelleCaptcha();
         ladeEintraege();
     </script>

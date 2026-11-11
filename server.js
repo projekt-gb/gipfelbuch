@@ -376,6 +376,8 @@ app.get('/api/captcha', (req, res) => {
 
     res.set('Cache-Control', 'no-store');
     res.json({
+        a,
+        b,
         frage: `Was ergibt ${a} + ${b}?`,
         token: `${ablauf}.${nonce}.${signiere(`${a + b}.${ablauf}.${nonce}`)}`
     });
@@ -412,13 +414,13 @@ app.post('/api/eintraege', async (req, res) => {
         const sauberNachricht = typeof nachricht === 'string' ? nachricht.trim() : '';
 
         if (sauberName === "") {
-            return res.status(400).json({ success: false, feld: 'name', error: "Der Name darf nicht leer sein." });
+            return res.status(400).json({ success: false, feld: 'name', code: 'EMPTY_NAME', error: "Der Name darf nicht leer sein." });
         }
         if (sauberName.length > MAX_NAME) {
-            return res.status(400).json({ success: false, feld: 'name', error: `Der Name darf maximal ${MAX_NAME} Zeichen lang sein.` });
+            return res.status(400).json({ success: false, feld: 'name', code: 'LONG_NAME', error: `Der Name darf maximal ${MAX_NAME} Zeichen lang sein.` });
         }
         if (sauberNachricht.length > MAX_NACHRICHT) {
-            return res.status(400).json({ success: false, feld: 'nachricht', error: `Die Nachricht darf maximal ${MAX_NACHRICHT} Zeichen lang sein.` });
+            return res.status(400).json({ success: false, feld: 'nachricht', code: 'LONG_MSG', error: `Die Nachricht darf maximal ${MAX_NACHRICHT} Zeichen lang sein.` });
         }
 
         // 2. Prüfung 1: Gipfel-Code muss exakt das Jahr 1961 sein
@@ -426,7 +428,7 @@ app.post('/api/eintraege', async (req, res) => {
         const eingetragenesJahr = parseInt(summitCode, 10);
 
         if (isNaN(eingetragenesJahr) || eingetragenesJahr !== KORREKTES_JAHR) {
-            return res.status(400).json({ success: false, feld: 'summitCode', error: "Falscher Gipfel-Code eingetragen." });
+            return res.status(400).json({ success: false, feld: 'summitCode', code: 'WRONG_SUMMIT_CODE', error: "Falscher Gipfel-Code eingetragen." });
         }
 
         // 3. Prüfung 2: Rechenaufgabe
@@ -440,7 +442,7 @@ app.post('/api/eintraege', async (req, res) => {
         }
 
         if (!captchaOk) {
-            return res.status(400).json({ success: false, feld: 'captchaInput', error: "Sicherheitsfrage wurde falsch beantwortet." });
+            return res.status(400).json({ success: false, feld: 'captchaInput', code: 'WRONG_CAPTCHA', error: "Sicherheitsfrage wurde falsch beantwortet." });
         }
 
         // 4. Automatische Inhaltsprüfung:
