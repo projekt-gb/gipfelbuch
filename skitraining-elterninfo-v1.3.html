@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<!-- WSV Kaltenbach-Ried | Skitraining Elterninfo | Version 1.3 | Stand 11.11.2026 -->
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="version" content="1.3">
+<meta name="theme-color" content="#070d16">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WSV Kaltenbach-Ried – Skitraining Elterninfo</title>
+<style>
+:root{--bg:#070d16;--card:rgba(17,29,47,.72);--solid:#101c2e;--ink:#e8f1fb;--mute:#8ea3b8;--line:rgba(140,180,220,.2);--acc:#4fd1ff;--acc2:#6c8cff;--red:#ff5d4f;--soft:rgba(79,209,255,.1);--warn:rgba(255,93,79,.11);--onacc:#04121f;--g1:rgba(79,209,255,.16);--g2:rgba(108,140,255,.16);--grid:rgba(140,180,220,.06);--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+@media (prefers-color-scheme:light){:root{--bg:#e9f0f8;--card:rgba(255,255,255,.74);--solid:#fff;--ink:#0d2236;--mute:#506479;--line:rgba(20,70,120,.16);--acc:#0a84c6;--acc2:#3b5bdb;--red:#d8372b;--soft:rgba(10,132,198,.09);--warn:rgba(216,55,43,.09);--onacc:#fff;--g1:rgba(10,132,198,.14);--g2:rgba(59,91,219,.11);--grid:rgba(20,70,120,.06)}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:17px/1.5 var(--sans);display:flex;flex-direction:column;height:100dvh;overflow:hidden;position:relative}
+body::before{content:"";position:fixed;inset:-20%;z-index:0;pointer-events:none;background:radial-gradient(40% 35% at 15% 10%,var(--g1),transparent 70%),radial-gradient(45% 40% at 90% 85%,var(--g2),transparent 70%);animation:drift 28s ease-in-out infinite alternate}
+body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:36px 36px;-webkit-mask-image:radial-gradient(75% 60% at 50% 25%,#000,transparent);mask-image:radial-gradient(75% 60% at 50% 25%,#000,transparent)}
+@keyframes drift{to{transform:translate3d(4%,3%,0) scale(1.08)}}
+.top,.hud,.dots,.stage,.nav{position:relative;z-index:1}
+.top{flex:none;display:flex;align-items:center;gap:10px;padding:calc(8px + env(safe-area-inset-top,0px)) 14px 8px;background:var(--card);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+.top .logo{width:38px;height:auto;color:var(--ink);flex:none}
+.top b{flex:1;font:700 .98rem var(--sans);letter-spacing:.01em;line-height:1.1}
+.faqbtn,.linkbtn,.nav button,.sheet header button,.reset,.letters button,.chk,summary{position:relative;overflow:hidden}
+.faqbtn{border:1px solid var(--acc);background:var(--soft);color:var(--acc);font:700 .88rem var(--sans);border-radius:20px;padding:8px 14px;min-height:40px}
+.hud{flex:none;display:flex;align-items:baseline;gap:6px;padding:10px 16px 0;font:600 .72rem var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+#hudn{color:var(--acc);font-size:1.1rem;letter-spacing:.04em}
+#hudt{margin-left:auto}
+.dots{flex:none;display:flex;gap:4px;padding:8px 14px 0}
+.dots button{flex:1;height:4px;border:0;border-radius:3px;background:var(--line);padding:0;position:relative;transition:background .3s,box-shadow .3s}
+.dots button::after{content:"";position:absolute;inset:-12px -2px}
+.dots button.seen{background:var(--acc2);opacity:.75}
+.dots button.cur{background:var(--acc);opacity:1;box-shadow:0 0 10px var(--acc)}
+.dots button:disabled{opacity:.5}
+.stage{flex:1;overflow-y:auto;padding:14px 14px 8px;-webkit-overflow-scrolling:touch}
+.card{display:none;position:relative;overflow:hidden;background:var(--card);-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter:blur(18px) saturate(140%);border:1px solid var(--line);border-radius:22px;padding:22px 20px;max-width:560px;margin:0 auto;box-shadow:0 18px 40px -22px rgba(0,0,0,.6)}
+.card::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;background:linear-gradient(150deg,rgba(255,255,255,.4),transparent 35%,transparent 65%,var(--acc));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:.45;pointer-events:none}
+.card.on{display:block;animation:in .32s ease-out}
+.card.back.on{animation-name:inb}
+.card.on::after{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent,var(--acc),transparent);transform:translateX(-100%);animation:scan 1.1s ease-out .1s 1 forwards;pointer-events:none}
+@keyframes scan{to{transform:translateX(100%)}}
+@keyframes in{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+@keyframes inb{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:none}}
+.card.on>*{animation:up .5s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*60ms + 80ms)}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.card.on>.big{animation-name:bigin}
+@keyframes bigin{from{opacity:0;transform:translateY(6px);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+.tag{display:inline-block;font:600 .7rem var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--acc);background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:5px 10px;margin-bottom:14px}
+h1,h2{font-family:var(--sans);font-weight:700;letter-spacing:-.02em;margin:0 0 6px;line-height:1.15}
+h1{font-size:1.9rem}
+h2{font-size:1.55rem}
+.big{font:700 2.2rem/1 var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.02em;margin:12px 0 16px;background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;width:fit-content;max-width:100%}
+.big small{display:block;font:600 .78rem var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mute);-webkit-text-fill-color:var(--mute);margin-top:8px}
+p{margin:0 0 12px}
+.key{background:var(--warn);border:1px solid rgba(255,93,79,.3);border-left:4px solid var(--red);padding:12px 14px;border-radius:12px;margin:14px 0}
+.box{border-radius:12px;padding:14px 16px;border:1px solid var(--line)}
+.yes{background:var(--soft);border-left:3px solid var(--acc)}
+.no{background:var(--warn);border-left:3px solid var(--red)}
+.box b{display:block;margin-bottom:4px}
+.box ul{margin:0;padding-left:20px}
+.pair{display:grid;gap:10px;margin:12px 0}
+.chk{display:flex;gap:14px;align-items:flex-start;padding:14px;margin:8px 0;border:1px solid var(--line);border-radius:14px;cursor:pointer;background:rgba(127,160,200,.06);min-height:56px;transition:border-color .25s,background .25s}
+.chk input{appearance:none;-webkit-appearance:none;flex:none;width:26px;height:26px;margin:0;border:2px solid var(--mute);border-radius:8px;display:grid;place-content:center;background:transparent;transition:background .2s,border-color .2s,box-shadow .2s}
+.chk input::after{content:"";width:12px;height:7px;border-left:3px solid var(--onacc);border-bottom:3px solid var(--onacc);transform:rotate(-45deg) scale(0);margin-top:-3px;transition:transform .22s cubic-bezier(.3,1.6,.5,1)}
+.chk input:checked{background:var(--acc);border-color:var(--acc);box-shadow:0 0 14px -2px var(--acc)}
+.chk input:checked::after{transform:rotate(-45deg) scale(1)}
+.chk:has(input:checked){border-color:var(--acc);background:var(--soft)}
+.rip{position:absolute;border-radius:50%;background:var(--acc);opacity:.32;transform:scale(0);animation:rip .65s ease-out forwards;pointer-events:none}
+@keyframes rip{to{transform:scale(1);opacity:0}}
+.letters{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:12px 0}
+.letters button{aspect-ratio:1;border-radius:12px;border:1px solid var(--line);background:rgba(127,160,200,.08);color:var(--ink);font:700 1.3rem var(--mono);transition:background .2s,box-shadow .2s,transform .15s}
+.letters button[aria-pressed=true]{background:linear-gradient(135deg,var(--acc),var(--acc2));border-color:transparent;color:var(--onacc);box-shadow:0 0 18px -3px var(--acc);transform:scale(1.06)}
+.mymsg{min-height:1.5em;font:700 .95rem var(--mono);letter-spacing:.04em;color:var(--acc);margin-bottom:6px}
+.mymsg:not(:empty){animation:up .4s both}
+.clock{position:absolute;top:16px;right:16px;width:46px;height:46px;filter:drop-shadow(0 0 6px rgba(79,209,255,.35))}
+.clock svg{width:100%;height:100%;display:block}
+.hh,.mh{transform-origin:22px 22px;transition:transform 1.4s cubic-bezier(.3,1.2,.5,1)}
+.okring{position:absolute;top:16px;right:16px;width:50px;height:50px;filter:drop-shadow(0 0 8px rgba(79,209,255,.5))}
+.okring path,.okring circle{stroke-dasharray:1;stroke-dashoffset:1}
+.card.on .okring circle{animation:draw 1s .2s ease-out forwards}
+.card.on .okring path{animation:draw .6s .9s ease-out forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.cover{background:radial-gradient(120% 80% at 15% 0%,rgba(79,209,255,.28),transparent 60%),radial-gradient(100% 90% at 100% 100%,rgba(108,140,255,.3),transparent 60%),#081525;background-size:140% 140%;animation:in .32s ease-out,aur 16s ease-in-out infinite alternate;color:#fff;text-align:center;border-color:rgba(140,180,220,.25)}
+.cover.on{animation:in .32s ease-out,aur 16s ease-in-out infinite alternate}
+@keyframes aur{from{background-position:0 0}to{background-position:100% 100%}}
+.cover>*{position:relative;z-index:1}
+.cover h1{color:#fff}
+.cover p{color:#c4d6e8}
+.orb{position:relative;width:min(60%,210px);aspect-ratio:1;margin:8px auto 20px;display:grid;place-items:center}
+.orb::before{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,transparent 0 55%,#4fd1ff);-webkit-mask:radial-gradient(closest-side,transparent 97%,#000 98%);mask:radial-gradient(closest-side,transparent 97%,#000 98%);animation:spin 10s linear infinite}
+.orb::after{content:"";position:absolute;inset:0;border-radius:50%;border:1px solid rgba(255,255,255,.14)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.orb .logo{width:60%;height:auto;color:#fff;filter:drop-shadow(0 0 14px rgba(79,209,255,.45));animation:float 6s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-5px)}}
+.ridge{display:block;width:calc(100% + 40px);height:auto;margin:16px -20px -22px}
+.ridge .ln{fill:none;stroke:#4fd1ff;stroke-width:1.6;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:draw 2s .3s ease-out forwards}
+.ridge .dot{fill:#fff;filter:drop-shadow(0 0 4px #4fd1ff)}
+details{border-top:1px solid var(--line)}
+summary{cursor:pointer;font-weight:700;padding:14px 2px;list-style:none;display:flex;justify-content:space-between;gap:10px;min-height:52px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";color:var(--acc);font:400 1.5rem var(--mono);line-height:1;transition:transform .25s}
+details[open]>summary::after{content:"–"}
+details p{color:var(--mute);margin:0 2px 12px}
+.nav{flex:none;display:flex;gap:10px;padding:10px 14px calc(12px + env(safe-area-inset-bottom,0px));background:var(--card);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-top:1px solid var(--line)}
+.nav button{font:700 1.03rem var(--sans);border-radius:14px;min-height:56px;border:0;transition:transform .15s,opacity .2s}
+.nav button:active{transform:scale(.98)}
+#back{flex:none;width:64px;background:var(--soft);color:var(--acc);font-size:1.5rem;border:1px solid var(--line)}
+#back:disabled{opacity:.35}
+#next{flex:1;background:linear-gradient(135deg,var(--acc),var(--acc2));color:var(--onacc);animation:breathe 2.6s ease-in-out infinite}
+@keyframes breathe{50%{box-shadow:0 0 22px -4px var(--acc)}}
+#next:disabled{background:rgba(127,160,200,.16);color:var(--mute);animation:none}
+.sheet{position:fixed;inset:0;z-index:10;background:var(--bg);display:none;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
+.sheet.on{display:flex}
+.sheet header{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--card);border-bottom:1px solid var(--line)}
+.sheet header b{flex:1;font:700 1.2rem var(--sans)}
+.sheet header button{border:1px solid var(--line);background:var(--soft);color:var(--acc);font:700 1rem var(--sans);border-radius:12px;padding:10px 16px;min-height:44px}
+.sheet .body{flex:1;overflow-y:auto;padding:14px 14px calc(20px + env(safe-area-inset-bottom,0px))}
+.sheet .faq{max-width:560px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:6px 16px 10px}
+input[type=search]{width:100%;max-width:560px;display:block;margin:0 auto 12px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);font:inherit}
+input[type=search]:focus{border-color:var(--acc);outline:none;box-shadow:0 0 0 3px var(--soft)}
+.sum{list-style:none;padding:0;margin:12px 0}
+.sum li{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.sum li::before{content:"✓";flex:none;color:var(--acc);font-weight:700}
+.reset{background:none;border:1px solid var(--line);color:var(--mute);padding:12px 16px;border-radius:12px;font:inherit;margin-top:6px}
+.sec{margin-top:10px}
+.linkbtn{display:flex;align-items:center;justify-content:center;min-height:56px;margin:12px 0;border-radius:14px;background:linear-gradient(135deg,var(--acc),var(--acc2));color:var(--onacc);font-weight:700;text-decoration:none}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.ridge .ln,.okring path,.okring circle{stroke-dashoffset:0!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="lg" viewBox="0 56 595 480" fill="currentColor"><path fill-rule="evenodd" d="M 557.3 492.3 L 516.1 428.3 L 501.0 428.3 L 546.7 499.1 L 47.1 499.1 L 92.8 428.3 L 77.8 428.3 L 36.5 492.3 L 24 511.7 L 569.9 511.7 Z M 557.3 492.3 "/><path fill-rule="evenodd" d="M 212.9 242.0 L 296.9 111.8 L 380.9 242.0 L 396.0 242.0 L 307.5 104.9 L 296.9 88.5 L 286.3 104.9 L 197.9 242.0 Z M 212.9 242.0 "/><path fill-rule="evenodd" d="M 110.6 462.3 L 120.4 455.3 L 127.0 455.3 L 127.0 478.6 L 121.8 478.6 L 121.8 459.3 L 113.1 465.8 Z M 110.6 462.3 "/><path fill-rule="evenodd" d="M 140.1 459.6 C 139.4 460.0 139.0 461.1 139.0 462.6 C 139.0 464.6 139.5 465.3 141.1 465.6 C 141.8 465.7 144.8 465.8 147.4 465.8 C 150.8 465.8 152.5 465.7 153.4 465.4 C 154.7 465.1 155.3 464.2 155.3 462.4 C 155.3 460.2 154.4 459.2 152.3 459.1 C 151.2 459.0 148.5 458.9 146.2 458.9 C 142.4 458.9 141.1 459.0 140.1 459.6 M 138.8 472.0 C 138.8 473.2 139.1 473.8 139.8 474.2 C 140.8 474.7 141.9 474.8 147.0 474.8 C 151.6 474.8 152.9 474.7 154.0 474.0 C 154.4 473.8 154.6 473.6 154.7 473.3 C 155.1 472.6 155.3 471.0 155.3 468.9 L 155.3 466.8 C 154.1 469.1 152.7 469.5 145.3 469.5 C 139.7 469.5 137.9 469.3 136.3 468.4 C 134.6 467.5 133.9 465.7 133.9 462.6 C 133.9 459.7 134.4 457.9 135.6 456.8 C 136.3 456.2 137.5 455.7 138.7 455.5 C 139.9 455.3 143.5 455.1 146.9 455.1 C 153.4 455.1 155.9 455.4 157.5 456.3 C 158.7 456.9 159.7 458.3 160.0 459.7 C 160.3 461.1 160.4 463.4 160.4 467.5 C 160.4 473.8 159.9 475.8 157.9 477.2 C 156.3 478.4 153.6 478.8 146.8 478.8 C 140.9 478.8 138.3 478.5 136.7 477.9 C 134.6 477.0 133.7 475.4 133.7 472.7 L 133.7 472.6 L 133.7 472.0 Z M 138.8 472.0 "/><path fill-rule="evenodd" d="M 437.3 470.0 L 437.3 459.2 L 422.0 470.0 Z M 418.2 467.5 L 435.8 455.3 L 442.3 455.3 L 442.3 470.0 L 446.1 470.0 L 446.1 473.8 L 442.3 473.8 L 442.3 478.6 L 437.3 478.6 L 437.3 473.9 L 418.2 473.9 Z M 418.2 467.5 "/><path fill-rule="evenodd" d="M 463.7 474.9 C 470.6 474.9 471.9 474.3 471.9 471.2 C 471.9 469.4 471.4 468.6 469.9 468.3 C 469.2 468.1 467.2 468.1 463.9 468.1 C 459.7 468.1 458.1 468.2 457.2 468.4 C 455.9 468.9 455.4 469.7 455.4 471.5 C 455.4 472.9 455.8 473.8 456.5 474.2 C 457.3 474.6 458.3 474.8 459.5 474.8 Z M 471.6 461.8 C 471.6 459.5 470.3 458.9 465.4 458.9 C 458.9 458.9 457.3 459.2 456.3 460.3 C 455.6 461.1 455.4 462.1 455.4 464.5 C 455.4 464.9 455.4 466.1 455.4 467.2 C 456.5 464.7 457.7 464.3 464.2 464.3 C 469.9 464.3 472.5 464.5 473.9 465.0 C 476.1 465.8 476.9 467.4 476.9 471.1 C 476.9 474.2 476.4 476.0 475.2 477.0 C 473.4 478.5 471.1 478.8 462.6 478.8 C 455.3 478.8 452.7 478.1 451.3 475.7 C 450.4 474.1 450.4 473.6 450.3 466.3 L 450.3 465.5 C 450.3 459.7 451 457.7 453.2 456.5 C 455.1 455.4 457.7 455.1 463.9 455.1 C 474.7 455.1 476.6 456.1 476.6 461.8 Z M 471.6 461.8 "/><path fill-rule="evenodd" d="M 336.2 242.0 C 336.2 242.0 326.6 227.3 317.1 212.5 L 327.2 212.5 C 327.2 212.5 317.0 196.8 308.1 183.0 L 318.2 183.0 L 296.9 149.9 L 275.6 183.0 L 285.6 183.0 L 266.6 212.5 L 276.6 212.5 L 257.6 242.0 Z M 336.2 242.0 "/><path fill-rule="evenodd" d="M 104.5 275.4 L 151.5 348.4 L 164.9 348.4 L 164.9 275.4 L 193.8 275.4 L 240.9 348.4 L 254.0 348.4 L 254.0 262.1 L 240.7 262.1 L 240.7 324.5 L 200.5 262.1 L 151.4 262.1 L 151.4 324.5 L 111.2 262.1 L 68.1 262.1 L 76.6 275.4 Z M 104.5 275.4 "/><path fill-rule="evenodd" d="M 263.7 262.1 L 263.7 358.1 L 235.6 358.1 L 188.5 285.1 L 174.6 285.1 L 174.6 358.1 L 146.2 358.1 L 99.1 285.1 L 82.9 285.1 L 138.5 371.4 L 187.6 371.4 L 187.6 309.0 L 227.8 371.4 L 277.0 371.4 L 277.0 262.1 Z M 263.7 262.1 "/><path fill-rule="evenodd" d="M 286.8 348.4 L 373.6 348.4 L 373.6 340.9 L 300.6 293.8 L 300.6 275.4 L 396.1 275.4 L 396.1 262.1 L 286.8 262.1 L 286.8 302.1 L 339.9 335.1 L 286.8 335.1 Z M 286.8 348.4 "/><path fill-rule="evenodd" d="M 396.1 285.1 L 310.3 285.1 L 310.3 288.4 L 383.3 335.5 L 383.3 358.1 L 286.8 358.1 L 286.8 371.4 L 396.1 371.4 L 396.1 328.3 L 349.7 298.4 L 396.1 298.4 Z M 396.1 285.1 "/><path fill-rule="evenodd" d="M 429.1 262.1 L 429.1 348.4 L 443.2 348.4 L 490.3 275.4 L 517.1 275.4 L 525.7 262.1 L 482.6 262.1 L 442.3 324.5 L 442.3 262.1 Z M 429.1 262.1 "/><path fill-rule="evenodd" d="M 495.6 285.1 L 448.5 358.1 L 419.4 358.1 L 419.4 262.1 L 406.1 262.1 L 406.1 371.4 L 455.2 371.4 L 510.8 285.1 Z M 495.6 285.1 "/><path fill-rule="evenodd" d="M 111.8 391.7 L 120.0 391.7 L 120.0 401.7 L 124.3 401.7 L 135.3 391.7 L 146.6 391.7 L 131.2 404.9 L 148.0 418.5 L 136.2 418.5 L 124.1 408.2 L 120.0 408.2 L 120.0 418.5 L 111.8 418.5 Z M 111.8 391.7 "/><path fill-rule="evenodd" d="M 174.3 408.1 L 168.5 397.4 L 162.8 408.1 Z M 163.1 391.7 L 174.0 391.7 L 188.7 418.5 L 179.8 418.5 L 177.1 413.7 L 159.9 413.7 L 157.3 418.5 L 148.0 418.5 Z M 163.1 391.7 "/><path fill-rule="evenodd" d="M 193.2 391.7 L 201.4 391.7 L 201.4 411.8 L 219.8 411.8 L 219.8 418.5 L 193.2 418.5 Z M 193.2 391.7 "/><path fill-rule="evenodd" d="M 229.0 398.3 L 217.1 398.3 L 217.1 391.7 L 249.1 391.7 L 249.1 398.3 L 237.1 398.3 L 237.1 418.5 L 229.0 418.5 Z M 229.0 398.3 "/><path fill-rule="evenodd" d="M 283.6 391.7 L 283.6 397.7 L 262.0 397.7 L 262.0 402.4 L 282.4 402.4 L 282.4 407.7 L 262.0 407.7 L 262.0 412.4 L 283.9 412.4 L 283.9 418.5 L 254 418.5 L 254 391.7 Z M 283.6 391.7 "/><path fill-rule="evenodd" d="M 289.7 391.7 L 302.7 391.7 L 318.9 412.0 L 318.7 391.7 L 326.4 391.7 L 326.4 418.5 L 313.3 418.5 L 297.4 398.3 L 297.6 418.5 L 289.7 418.5 Z M 289.7 391.7 "/><path fill-rule="evenodd" d="M 355.6 412.5 C 357.2 412.5 357.5 412.5 358.1 412.3 C 358.9 412.0 359.3 411.2 359.3 410.1 C 359.3 408.9 358.9 408.1 358.0 407.8 C 357.5 407.7 357.2 407.6 355.4 407.6 L 341.0 407.6 L 341.0 412.5 Z M 354.7 402.4 C 356.3 402.4 356.8 402.3 357.3 402.0 C 358.0 401.7 358.4 401 358.4 400.0 C 358.4 398.9 357.9 398.1 357.0 397.8 C 356.5 397.7 356.0 397.6 354.5 397.6 L 341.0 397.6 L 341.0 402.4 Z M 333.0 391.7 L 357.2 391.7 C 360.3 391.7 362.0 392 363.4 392.6 C 365.6 393.8 366.5 395.6 366.5 399.0 C 366.5 402.5 365.3 404.3 362.7 404.8 C 366.3 405.5 367.5 407.0 367.5 410.9 C 367.5 414.3 366.6 416.4 364.4 417.5 C 363.2 418.2 361.4 418.5 358.3 418.5 L 333.0 418.5 Z M 333.0 391.7 "/><path fill-rule="evenodd" d="M 396.2 408.1 L 390.4 397.4 L 384.7 408.1 Z M 385.0 391.7 L 396 391.7 L 410.6 418.5 L 401.7 418.5 L 399.0 413.7 L 381.8 413.7 L 379.2 418.5 L 370.0 418.5 Z M 385.0 391.7 "/><path fill-rule="evenodd" d="M 447.4 408.4 C 447.3 412.3 447.2 413.6 446.7 414.8 C 445.6 417.1 443.5 418.2 439.3 418.5 C 437.6 418.6 434.4 418.7 429.1 418.7 C 421.4 418.7 418.9 418.3 416.7 416.9 C 414.0 415.2 413.3 412.4 413.3 404.4 C 413.3 397.4 414.1 394.8 416.9 393.2 C 419.3 391.8 421.9 391.5 429.4 391.5 C 439.4 391.5 441.6 391.7 443.9 392.8 C 446.0 393.9 447.0 396.3 447.0 400.2 L 447.0 401.1 L 439.2 401.1 C 439.1 398.1 438.5 397.9 431.4 397.9 C 424.7 397.9 423.5 398.1 422.5 398.9 C 421.6 399.8 421.4 400.9 421.4 405.3 C 421.4 411.7 422.0 412.2 429.8 412.2 C 435.9 412.2 436.7 412.1 437.9 411.6 C 439.0 411.2 439.5 410.3 439.5 408.4 Z M 447.4 408.4 "/><path fill-rule="evenodd" d="M 453.2 391.7 L 461.4 391.7 L 461.4 401.6 L 479.9 401.6 L 479.9 391.7 L 488.1 391.7 L 488.1 418.5 L 479.9 418.5 L 479.9 408.2 L 461.4 408.2 L 461.4 418.5 L 453.2 418.5 Z M 453.2 391.7 "/><path fill-rule="evenodd" d="M 258.0 442.0 C 261.9 442.0 262.7 441.5 262.7 438.9 C 262.7 437.1 262.5 436.4 262.0 435.9 C 261.4 435.2 260.7 435.1 258.2 435.1 L 245.2 435.1 L 245.2 442.0 Z M 237.1 428.5 L 260.2 428.5 C 265.0 428.5 267.0 428.9 268.6 430.2 C 270.1 431.4 270.9 433.7 270.9 437.3 C 270.9 442.3 269.7 444.3 266.2 445.1 C 269.6 445.6 270.6 447.0 270.5 451.1 L 270.5 455.3 L 262.2 455.3 L 262.2 452.0 C 262.2 449.1 261.4 448.5 257.7 448.6 L 245.2 448.6 L 245.2 455.3 L 237.1 455.3 Z M 237.1 428.5 "/><path fill-rule="evenodd" d="M 277.1 428.5 L 285.2 428.5 L 285.2 455.3 L 277.1 455.3 Z M 277.1 428.5 "/><path fill-rule="evenodd" d="M 321.4 428.5 L 321.4 434.6 L 299.7 434.6 L 299.7 439.2 L 320.1 439.2 L 320.1 444.5 L 299.7 444.5 L 299.7 449.2 L 321.7 449.2 L 321.7 455.3 L 291.7 455.3 L 291.7 428.5 Z M 321.4 428.5 "/><path fill-rule="evenodd" d="M 349.3 448.9 C 351.5 448.9 351.7 448.9 352.6 448.6 C 354.6 448.0 355.1 446.6 355.1 442.0 C 355.1 436.3 354.1 435.2 349.4 435.2 L 335.6 435.2 L 335.6 448.9 Z M 327.5 428.5 L 350.6 428.5 C 356.3 428.5 358.9 429.1 360.8 431.0 C 362.3 432.4 362.9 434.1 363.1 437.5 C 363.2 438.8 363.3 440.6 363.3 441.9 C 363.3 444.3 363.1 447.1 362.9 448.6 C 362.5 451.8 360.2 454.3 357.3 454.9 C 355.8 455.2 354.6 455.3 351.7 455.3 L 327.5 455.3 Z M 327.5 428.5 "/></symbol></svg>
+
+<div class="top"><svg class="logo" viewBox="0 56 595 480" role="img" aria-label="WSV Kaltenbach-Ried Logo"><use href="#lg"/></svg><b>WSV Kaltenbach-Ried</b><button class="faqbtn" id="openFaq" type="button">Fragen?</button></div>
+<div class="hud" aria-hidden="true"><span id="hudn">01</span><span id="hudo">/ 18</span><span id="hudt">Start</span></div>
+<div class="dots" id="dots" role="tablist" aria-label="Fortschritt"></div>
+
+<div class="stage" id="stage">
+
+<article class="card cover" data-title="Start">
+<div class="orb"><svg class="logo" viewBox="0 56 595 480" role="img" aria-label="WSV Kaltenbach-Ried Logo"><use href="#lg"/></svg></div>
+<h1>Skitraining: So läuft ein Trainingstag</h1>
+<p>Kurze Karten mit allem Wichtigen für Eltern und Kinder. Jede Karte lesen, abhaken, weiter. Plane dafür bitte etwa 10 bis 15 Minuten ein. Die Infos sind bewusst auf viele kurze Karten verteilt.</p>
+<p style="font-size:.85rem;opacity:.8;margin:0">Version 1.3 · Stand 11.11.2026</p>
+<svg class="ridge" viewBox="0 0 300 64" aria-hidden="true"><defs><linearGradient id="rg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4fd1ff" stop-opacity=".22"/><stop offset="1" stop-color="#4fd1ff" stop-opacity="0"/></linearGradient></defs><path d="M0 52 L40 34 L62 44 L105 12 L135 40 L160 28 L200 50 L232 22 L262 40 L300 30 V64 H0Z" fill="url(#rg)"/><path class="ln" pathLength="1" d="M0 52 L40 34 L62 44 L105 12 L135 40 L160 28 L200 50 L232 22 L262 40 L300 30"/><circle class="dot" r="2.6"><animateMotion dur="9s" repeatCount="indefinite" path="M0 52 L40 34 L62 44 L105 12 L135 40 L160 28 L200 50 L232 22 L262 40 L300 30"/></circle></svg>
+</article>
+
+<article class="card" data-title="Klubraum">
+<span class="tag">Schritt 1 von 5 · Teil 1</span>
+<h2>Die Klubraum-Regel</h2>
+<p>Jedes Training wird vorher als Umfrage in den Klubraum-Gruppen ausgeschrieben. Dort steht auch, ob am <b>Samstag oder Sonntag</b> trainiert wird.</p>
+<label class="chk"><input type="checkbox"><span>Ich habe Klubraum und bin in der Gruppe meines Kindes.</span></label>
+</article>
+
+<article class="card" data-time="12:00" data-title="Frist">
+<span class="tag">Schritt 1 von 5 · Teil 2</span>
+<h2>Zu- oder Absage</h2>
+<div class="big">Fr 12:00 Uhr<small>Frist für Zu- oder Absage</small></div>
+<div class="key"><b>Zwingend über die Klubraum-App.</b> Die Frist am Freitag um 12:00 Uhr ist fix.</div>
+<label class="chk"><input type="checkbox"><span>Ich sage immer über die App zu oder ab, spätestens Freitag 12:00 Uhr.</span></label>
+</article>
+
+<article class="card" data-time="08:00" data-title="Treffpunkt">
+<span class="tag">Schritt 2 von 5 · Teil 1</span>
+<h2>Treffpunkt Schialm</h2>
+<div class="big">08:00 Uhr<small>Abgabe am Buchstabenschild</small></div>
+<p>Die Gruppen sind mit Schildern von <b>A bis L</b> gekennzeichnet. Das Kind wird bei seinem Schild abgegeben.</p>
+<label class="chk"><input type="checkbox"><span>Wir sind um 08:00 Uhr bei der Schialm.</span></label>
+</article>
+
+<article class="card" data-title="Gruppenbuchstabe">
+<span class="tag">Schritt 2 von 5 · Teil 2</span>
+<h2>Der Gruppenbuchstabe</h2>
+<div class="key"><b>Kinder müssen ihren Gruppenbuchstaben kennen!</b></div>
+<p>Tippe den Buchstaben deines Kindes an, dann merkst du ihn dir:</p>
+<div class="letters" id="letters" role="group" aria-label="Gruppenbuchstabe"></div>
+<div class="mymsg" id="mymsg" aria-live="polite"></div>
+<label class="chk"><input type="checkbox"><span>Mein Kind kennt seinen Gruppenbuchstaben.</span></label>
+</article>
+
+<article class="card" data-title="Trainer-Check">
+<span class="tag">Schritt 3 von 5 · Teil 1</span>
+<h2>Trainer-Check &amp; Abfahrt</h2>
+<p>Der Trainer kommt zur Buchstabengruppe und gleicht die Anwesenheit <b>live mit der Klubraum-App</b> ab.</p>
+<div class="key"><b>Die Gruppe fährt erst los, wenn alle gemeldeten Kinder da sind.</b> Wer zugesagt hat und fehlt, hält alle auf.</div>
+<label class="chk"><input type="checkbox"><span>Ich habe verstanden, warum die Meldung in der App so wichtig ist.</span></label>
+</article>
+
+<article class="card" data-title="Verspätung">
+<span class="tag">Schritt 3 von 5 · Teil 2</span>
+<h2>Kind noch nicht da?</h2>
+<div class="pair">
+<div class="box yes"><b>Kind noch nicht da?</b>Ist ein Kind nach dem Treffpunkt noch nicht da, wird nach wenigen Minuten telefonisch Kontakt aufgenommen.</div>
+<div class="box no"><b>Verspätung absehbar?</b>Bitte sofort melden.</div>
+</div>
+<label class="chk"><input type="checkbox"><span>Bei absehbarer Verspätung melde ich mich sofort.</span></label>
+</article>
+
+<article class="card" data-time="11:15" data-title="Training">
+<span class="tag">Schritt 4 von 5</span>
+<h2>Trainingszeit</h2>
+<div class="big">bis 11:15 Uhr<small>Technik und Spaß</small></div>
+<div class="pair">
+<div class="box yes"><b>Technikübungen</b>Jede Kurve wird sicherer, Schritt für Schritt in der Gruppe.</div>
+<div class="box yes"><b>Freies Fahren</b>Das Gelernte ausprobieren und einfach Schi fahren.</div>
+</div>
+<p>Dein Kind fährt die ganze Zeit mit seinem Trainer und seiner Gruppe.</p>
+</article>
+
+<article class="card" data-title="Die Trainer">
+<span class="tag">Gut zu wissen</span>
+<h2>Die Trainer</h2>
+<div class="box yes"><b>Training und Übungen</b>Die Trainer gestalten das Training und die Übungen. Sie sind darin ausgebildet.</div>
+<div class="key"><b>Gruppenwechsel</b> aufgrund des Könnens sind möglich. Die Einteilung machen die Trainer, nicht die Eltern.</div>
+<label class="chk"><input type="checkbox"><span>Ich weiß: Die Trainer gestalten das Training und teilen die Gruppen ein.</span></label>
+</article>
+
+<article class="card" data-title="Co-Trainer">
+<span class="tag">Mithilfe</span>
+<h2>Co-Trainer &amp; Eltern</h2>
+<p>Wir haben Co-Trainer, die bei einer Gruppe hinterherfahren.</p>
+<div class="box yes"><b>Im Bedarfsfall</b>Die Trainer sprechen Eltern an, ob sie uns unterstützen können, gerade bei kleineren Kindern.</div>
+<label class="chk"><input type="checkbox"><span>Ich habe verstanden: Bei Bedarf fragen die Trainer Eltern um Unterstützung.</span></label>
+</article>
+
+<article class="card" data-time="11:15" data-title="Abholung">
+<span class="tag">Schritt 5 von 5 · Teil 1</span>
+<h2>Abholung MountainView</h2>
+<div class="big">11:15 Uhr<small>vor der Bergstation</small></div>
+<p>Die Übergabe findet vor der Bergstation am <b>MountainView</b> statt. Bitte pünktlich sein.</p>
+<div class="key"><b>Rückfall-Ebene:</b> Kinder, die dort nicht abgeholt werden, fahren in Begleitung eines Erwachsenen sicher ins Tal.</div>
+<label class="chk"><input type="checkbox"><span>Abholung: 11:15 Uhr, vor der Bergstation MountainView.</span></label><label class="chk"><input type="checkbox"><span>Ich weiß, was passiert, wenn mein Kind nicht abgeholt wird.</span></label>
+</article>
+
+<article class="card" data-title="Wer holt ab?">
+<span class="tag">Schritt 5 von 5 · Teil 2</span>
+<h2>Wer holt ab?</h2>
+<div class="box yes"><b>Abholung am Berg ist unser Ziel</b>Das Kind weiß, wo und von wem es abgeholt wird. Oben stehen und nichts wissen ist ein absolutes No-Go und kostet viel Zeit.</div>
+<div class="key"><b>Kinder fahren nie allein ins Tal.</b> Sie müssen an einen Erziehungsberechtigten übergeben werden.</div>
+<label class="chk"><input type="checkbox"><span>Mein Kind weiß, wo und von wem es abgeholt wird.</span></label>
+</article>
+
+<article class="card" data-title="Ausrüstung">
+<span class="tag">Ausrüstung</span>
+<h2>Was dein Kind mitbringt</h2>
+<p>Dein Kind kommt mit <b>funktionierender Schiausrüstung</b>. Dazu gehören auch Helm und Handschuhe.</p>
+<div class="pair">
+<div class="box yes"><b>Das gilt</b><ul><li><b>Helm: Pflicht</b></li><li><b>Handschuhe</b></li><li>Rückenprotektor: erwünscht</li></ul></div>
+</div>
+<label class="chk"><input type="checkbox"><span>Ausrüstung ist geprüft und funktioniert, inklusive Helm und Handschuhen.</span></label><label class="chk"><input type="checkbox"><span>Ein Rückenprotektor ist eingepackt (erwünscht).</span></label>
+</article>
+
+<article class="card" data-title="Schianzug">
+<span class="tag">Vereinsanzug</span>
+<h2>Der Schianzug</h2>
+<div class="pair">
+<div class="box yes"><b>Leihgabe</b>Der Anzug gehört dem WSV Kaltenbach-Ried (Eigentümer) und wird nur verliehen.</div>
+<div class="box yes"><b>Nur zum Schifahren</b>Die Vereinsanzüge dürfen nur zum Schifahren verwendet werden.</div>
+<div class="box no"><b>NICHT WASCHEN!</b>Keine Zuckerl mitnehmen und keine Schleckereien im Anzug.</div>
+</div>
+<label class="chk"><input type="checkbox"><span>Der Vereinsanzug wird nur zum Schifahren getragen.</span></label><label class="chk"><input type="checkbox"><span>Der Anzug wird nicht gewaschen.</span></label>
+</article>
+
+<article class="card" data-title="Schäden melden">
+<span class="tag">Vereinsanzug</span>
+<h2>Schäden melden</h2>
+<div class="key"><b>Defekte und Verschmutzungen sofort melden – am selben TAG!</b></div>
+<div class="pair">
+<div class="box no"><b>Beschädigungen aller Art</b>z. B. Seilbahnfett oder Defekte. Umgehend melden.</div>
+<div class="box no"><b>Verschmutzung durch die Bergbahnen</b>Auch im Büro der Bergbahn melden.</div>
+</div>
+<p>Beschädigungen, Schnitte etc. sind auf Kosten des Mieters zu bezahlen.</p>
+<label class="chk"><input type="checkbox"><span>Ich melde Schäden oder Verschmutzungen am selben Tag.</span></label><label class="chk"><input type="checkbox"><span>Ich kontrolliere den Anzug vor der Rückgabe.</span></label>
+</article>
+
+<article class="card" data-title="Im Anzug dabei">
+<span class="tag">Muss mit</span>
+<h2>Im Schianzug dabei</h2>
+<div class="pair">
+<div class="box yes"><b>Immer im Anzug</b><ul><li><b>ÖSV-Karte</b></li><li><b>Saisonkarte</b></li><li><b>Namensschild</b> vom Kind <b>mit TELEFONNUMMER</b></li></ul></div>
+</div>
+<div class="key"><b>Kinder müssen sich auskennen!</b> Dein Kind weiß, wo alles im Anzug steckt.</div>
+<div class="box no"><b>Keine Schleckereien</b>Keine Zuckerl und nichts Klebriges im Anzug.</div>
+<label class="chk"><input type="checkbox"><span>ÖSV-Karte und Saisonkarte stecken im Anzug.</span></label><label class="chk"><input type="checkbox"><span>Namensschild mit Telefonnummer ist dabei.</span></label><label class="chk"><input type="checkbox"><span>Mein Kind weiß, wo alles steckt.</span></label>
+</article>
+
+<article class="card" data-title="Versicherung">
+<span class="tag">Zur Info</span>
+<h2>Versicherung über den ÖSV</h2>
+<p>Die ÖSV-Karte ist die <b>Voraussetzung, um beim WSV mitzufahren</b> und an Rennen teilzunehmen. Das ist inklusive:</p>
+<ul class="sum">
+<li>Bergungskosten bis 25.000 €</li>
+<li>Behandlungskosten im Ausland bis 10.000 €</li>
+<li>Rückholkosten aus dem Ausland unbegrenzt (über Tyrol Air Ambulance)</li>
+<li>Ski Austria HelpLine nach Unfällen</li>
+</ul>
+</article>
+
+<article class="card" data-title="Wann versichert">
+<span class="tag">Zur Info</span>
+<h2>Wann die Versicherung gilt</h2>
+<ul class="sum">
+<li>Vereinsunfälle sind abgedeckt: Training, Rennen und Wettbewerbe</li>
+<li>Wegunfälle sind mitversichert, z. B. auf dem Weg zum Training</li>
+</ul>
+</article>
+
+<article class="card rules" data-title="FIS-Regeln 1–5">
+<span class="tag">Sicherheit</span>
+<h2>Die FIS-Pistenregeln (1–5)</h2>
+<p>Zehn Regeln des Skiverbands. Tippe sie an und besprich sie mit deinem Kind.</p>
+<div>
+<details><summary>1. Rücksicht auf andere</summary><p>Jeder Fahrer verhält sich so, dass er niemanden gefährdet oder schädigt.</p></details><details><summary>2. Geschwindigkeit und Fahrweise</summary><p>Immer so fahren, dass man rechtzeitig anhalten kann. Gelände, Sicht und Verkehr beachten.</p></details><details><summary>3. Wahl der Fahrspur</summary><p>Wer von hinten kommt, wählt seine Spur so, dass er Fahrer vor ihm nicht gefährdet.</p></details><details><summary>4. Überholen</summary><p>Mit genug Abstand, links oder rechts, so dass der Überholte genug Platz hat.</p></details><details><summary>5. Einfahren, Anfahren, hangaufwärts</summary><p>Vor dem Einfahren in eine Piste oder dem Anfahren nach oben und unten schauen.</p></details>
+</div>
+</article>
+
+<article class="card rules" data-title="FIS-Regeln 6–10">
+<span class="tag">Sicherheit</span>
+<h2>Die FIS-Pistenregeln (6–10)</h2>
+<p>Zehn Regeln des Skiverbands. Tippe sie an und besprich sie mit deinem Kind.</p>
+<div>
+<details><summary>6. Anhalten</summary><p>Nicht an engen oder unübersichtlichen Stellen stehen bleiben. Ein gestürzter Fahrer macht sofort Platz.</p></details><details><summary>7. Aufstieg und Abstieg</summary><p>Zu Fuß nur am äußersten Pistenrand gehen.</p></details><details><summary>8. Zeichen beachten</summary><p>Markierungen und Signale gelten für alle.</p></details><details><summary>9. Hilfeleistung</summary><p>Bei Unfällen ist jeder zur Hilfe verpflichtet.</p></details><details><summary>10. Ausweispflicht</summary><p>Wer an einem Unfall beteiligt oder Zeuge ist, gibt seine Daten an.</p></details>
+</div>
+<label class="chk sec"><input type="checkbox"><span>Wir haben die Regeln besprochen.</span></label>
+</article>
+
+<article class="card" data-title="Handyfreie Zone">
+<span class="tag">Äußerst wichtig</span>
+<h2>Handyfreie Zone</h2>
+<div class="key"><b>Bei uns gilt: handyfreie Zone.</b></div>
+<div class="pair">
+<div class="box yes"><b>Erlaubt</b>Das Kind darf das Handy dabeihaben, damit es im Notfall die Eltern kontaktieren kann.</div>
+<div class="box no"><b>Muss eingepackt bleiben</b><ul><li>Auf dem Lift</li><li>Beim Einkehrschwung</li></ul></div>
+</div>
+<label class="chk"><input type="checkbox"><span>Mein Kind weiß: Auf dem Lift und beim Einkehrschwung bleibt das Handy eingepackt.</span></label>
+</article>
+
+<article class="card" data-title="Regeln für Kinder">
+<span class="tag">Mit dem Kind besprechen</span>
+<h2>Regeln für Kinder</h2>
+<ul class="sum">
+<li><b>Auf den Trainer hören.</b> Er kennt Piste, Lage und Gruppe.</li>
+<li><b>Nie allein von der Gruppe wegfahren.</b></li>
+<li><b>Handy eingepackt lassen</b> auf dem Lift und beim Einkehrschwung.</li>
+<li><b>Bedürfnisse sagen:</b> WC, Kälte oder anderes. Die Trainer gehen darauf ein.</li>
+<li><b>Wissen, wo und von wem es abgeholt wird.</b></li>
+<li><b>Den eigenen Gruppenbuchstaben kennen.</b></li>
+</ul>
+<label class="chk"><input type="checkbox"><span>Wir haben diese Regeln gemeinsam durchgesprochen.</span></label>
+</article>
+
+<article class="card" data-title="Unfall">
+<span class="tag">Gut zu wissen</span>
+<h2>Wenn etwas passiert</h2>
+<div class="box no"><b>Unfall</b>Die Trainer setzen die Rettungskette in Gang und übergeben an die Pistenrettung. Dafür werden sie vom Personal der Pistenrettung geschult. Gleichzeitig werden die Eltern verständigt.</div>
+<label class="chk"><input type="checkbox"><span>Ich bin während des Trainings telefonisch erreichbar.</span></label>
+</article>
+
+<article class="card" data-title="Kleine Fälle">
+<span class="tag">Gut zu wissen</span>
+<h2>Kleine Verletzung &amp; Defekte</h2>
+<div class="pair">
+<div class="box yes"><b>Kleine Verletzung oder geringe Schmerzen</b>Auch wenn keine Pistenrettung nötig ist, werden die Eltern kontaktiert.</div>
+<div class="box yes"><b>Defekte Ausrüstung</b>Verhindert ein Defekt die Weiterfahrt, werden die Eltern kontaktiert.</div>
+</div>
+</article>
+
+<article class="card" data-title="Einkehrschwung">
+<span class="tag">Pause</span>
+<h2>Einkehrschwung</h2>
+<div class="big">5–7 €<small>pro Kind</small></div>
+<p>Der Einkehrschwung erfolgt je nach Lage und nicht bei allen Gruppen gleichzeitig. Das Handy bleibt dabei eingepackt.</p>
+<label class="chk"><input type="checkbox"><span>Mein Kind hat 5–7 € dabei.</span></label>
+</article>
+
+<article class="card" data-title="Was gibt es?">
+<span class="tag">Pause</span>
+<h2>Was gibt es?</h2>
+<div class="pair">
+<div class="box yes"><b>Erlaubt</b><ul><li>Schiwasser, Kakao, Tee</li><li>Maximal eine Breze pro Kind</li></ul></div>
+<div class="box no"><b>Nicht erlaubt</b><ul><li>Andere Getränke</li><li>Mehr oder anderes Essen</li></ul></div>
+</div>
+<label class="chk"><input type="checkbox"><span>Wir haben besprochen: nur Schiwasser, Kakao, Tee und eine Breze.</span></label>
+</article>
+
+<article class="card" data-title="Schlechtwetter">
+<span class="tag">Gut zu wissen</span>
+<h2>Schlechtwetter</h2>
+<div class="box yes"><b>Schlechtwetter</b>Eine Info kommt in Klubraum. Wir fahren aber so lange, wie die Bahn den Betrieb aufrecht hält. Darum Kinder immer wetterfest anziehen.</div>
+<label class="chk"><input type="checkbox"><span>Ich schaue vor dem Training in Klubraum nach Infos.</span></label>
+</article>
+
+<article class="card" data-title="Kontakt">
+<span class="tag">Gut zu wissen</span>
+<h2>Fragen &amp; Kontakt</h2>
+<div class="box yes"><b>Fragen oder Verspätung</b>Ansprechperson ist die Klubraum-Gruppe. Dort sieht es der Trainer.</div>
+<label class="chk"><input type="checkbox"><span>Ich weiß: Fragen stelle ich in der Klubraum-Gruppe.</span></label>
+</article>
+
+<article class="card" data-title="Termine & News">
+<span class="tag">Vereinsleben</span>
+<h2>Termine &amp; News</h2>
+<div class="big">www.wsv.at<small>Termine und News</small></div>
+<p>Alle Termine und News des Vereins findest du auf <b>www.wsv.at</b>. Schau dort regelmäßig vorbei.</p>
+<a class="linkbtn" href="https://www.wsv.at" target="_blank" rel="noopener">www.wsv.at öffnen</a>
+<label class="chk"><input type="checkbox"><span>Ich schaue regelmäßig auf www.wsv.at nach Terminen und News.</span></label>
+</article>
+
+<article class="card" data-title="Vereinsleben">
+<span class="tag">Vereinsleben</span>
+<h2>Vereinsveranstaltungen</h2>
+<p>Der WSV lebt von seinen Mitgliedern. Vereinsveranstaltungen sollen besucht werden, zum Beispiel:</p>
+<ul class="sum">
+<li>Feuerbrennen</li>
+<li>Gipfelmesse</li>
+<li>JHV (Jahreshauptversammlung)</li>
+<li>und weitere Veranstaltungen, siehe www.wsv.at</li>
+</ul>
+<label class="chk"><input type="checkbox"><span>Ich plane Vereinsveranstaltungen ein und schaue auf www.wsv.at.</span></label>
+</article>
+
+<article class="card" data-title="Fertig">
+<svg class="okring" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" fill="none" stroke="var(--acc)" stroke-width="2.5" pathLength="1"/><path d="M14 25l7 7 14-15" fill="none" stroke="var(--acc)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" pathLength="1"/></svg>
+<span class="tag">Geschafft</span>
+<h2>Ihr seid startklar</h2>
+<p>Das ist die Kurzfassung für den Kühlschrank:</p>
+<ul class="sum">
+<li>Zu- oder Absage in Klubraum, Frist Fr 12:00 Uhr (fix)</li>
+<li>08:00 Uhr Schialm, Kind kennt seinen Buchstaben (A–L)</li>
+<li>Trainer startet, wenn alle gemeldeten Kinder da sind</li>
+<li>11:15 Uhr Abholung vor der Bergstation MountainView</li>
+<li>Funktionierende Ausrüstung, Helm Pflicht, Handschuhe</li>
+<li>Anzug: nicht waschen, Schäden am selben Tag melden</li>
+<li>Im Anzug: ÖSV-Karte, Saisonkarte, Namensschild mit Telefonnummer</li>
+<li>Co-Trainer fahren hinterher, bei Bedarf fragen die Trainer Eltern um Unterstützung</li>
+<li>Handyfreie Zone: auf dem Lift und beim Einkehrschwung eingepackt</li>
+<li>Kinder fahren nie allein ins Tal, Übergabe an Erziehungsberechtigte</li>
+<li>Einkehrschwung: 5–7 €, Schiwasser/Kakao/Tee, eine Breze</li>
+<li>Termine und News: www.wsv.at, Vereinsveranstaltungen besuchen</li>
+</ul>
+<button class="faqbtn" type="button" id="faq2">Noch Fragen? Hier nachsehen</button>
+<div><button class="reset" id="reset" type="button">Alles zurücksetzen</button></div>
+<p style="color:var(--mute);font-size:.85rem;margin:14px 0 0">WSV Kaltenbach-Ried · Version 1.3 · Stand 11.11.2026</p>
+</article>
+
+</div>
+
+<div class="nav"><button id="back" type="button" aria-label="Zurück">‹</button><button id="next" type="button">Los geht’s</button></div>
+
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Häufige Fragen">
+<header><b>Häufige Fragen</b><button id="closeFaq" type="button">Schließen</button></header>
+<div class="body">
+<input type="search" id="q" placeholder="Suchen, z. B. Handy, Unfall, Termine …" aria-label="Fragen durchsuchen">
+<div class="faq" id="faqlist">
+<details><summary>Mein Kind kann nicht kommen. Was tun?</summary><p>In der Klubraum-App absagen, spätestens Freitag 12:00 Uhr.</p></details>
+<details><summary>Ich habe die Frist verpasst. Geht es noch?</summary><p>Die Frist am Freitag um 12:00 Uhr ist fix.</p></details>
+<details><summary>Reicht eine Nachricht an den Trainer statt der App?</summary><p>Nein. Zu- und Absage müssen zwingend über die Klubraum-App erfolgen.</p></details>
+<details><summary>Samstag oder Sonntag?</summary><p>Das steht in der Umfrage, die vor dem Training in den Klubraum-Gruppen ausgeschrieben wird.</p></details>
+<details><summary>Wo gebe ich mein Kind ab?</summary><p>Um 08:00 Uhr bei der Schialm, am Schild mit dem Buchstaben der Gruppe (A bis L). Das Kind sollte seinen Buchstaben kennen.</p></details>
+<details><summary>Wann fährt die Gruppe los?</summary><p>Der Trainer gleicht die Anwesenheit live mit der App ab. Die Gruppe fährt erst geschlossen los, wenn alle gemeldeten Kinder da sind.</p></details>
+<details><summary>Wo und wann hole ich mein Kind ab?</summary><p>Um 11:15 Uhr vor der Bergstation am MountainView.</p></details>
+<details><summary>Was, wenn niemand zur Abholung kommt?</summary><p>Kinder, die dort nicht abgeholt werden, fahren in Begleitung eines Erwachsenen sicher ins Tal. Bitte plant die Abholung trotzdem verlässlich ein.</p></details>
+<details><summary>Fällt das Training bei Schlechtwetter aus?</summary><p>Eine Info dazu kommt in Klubraum. Wir fahren aber so lange, wie die Bahn den Betrieb aufrecht hält.</p></details>
+<details><summary>Wen kontaktiere ich bei Fragen oder Verspätung?</summary><p>Die Klubraum-Gruppe. Dort sieht es der Trainer.</p></details>
+<details><summary>Was muss mein Kind mitbringen?</summary><p>Funktionierende Schiausrüstung, dazu gehören Helm und Handschuhe. Ein Rückenprotektor ist erwünscht.</p></details>
+<details><summary>Ist der Helm wirklich Pflicht?</summary><p>Ja. Ein Rückenprotektor ist erwünscht, aber keine Pflicht.</p></details>
+<details><summary>Darf mein Kind den Vereinsanzug auch sonst tragen?</summary><p>Nein. Die Vereinsanzüge dürfen nur zum Schifahren verwendet werden.</p></details>
+<details><summary>Wie viel Geld braucht mein Kind für den Einkehrschwung?</summary><p>5–7 € pro Kind.</p></details>
+<details><summary>Was darf mein Kind trinken und essen?</summary><p>Nur Schiwasser, Kakao und Tee. Zu essen gibt es maximal eine Breze pro Kind.</p></details>
+<details><summary>Gehen alle Gruppen gleichzeitig zum Einkehrschwung?</summary><p>Nein. Er erfolgt je nach Lage und nicht bei allen Gruppen gleichzeitig.</p></details>
+<details><summary>Wem gehört der Vereinsanzug?</summary><p>Er ist eine Leihgabe des WSV Kaltenbach-Ried (Eigentümer).</p></details>
+<details><summary>Mein Kind hat den Anzug beschädigt oder verschmutzt. Was tun?</summary><p>Defekte und Beschädigungen aller Art, auch Seilbahnfett, sind umgehend zu melden, und zwar am selben Tag. Bei Verschmutzung durch die Bergbahnen bitte auch im Büro der Bergbahn melden.</p></details>
+<details><summary>Darf ich den Anzug waschen?</summary><p>Nein. Der Anzug darf nicht gewaschen werden.</p></details>
+<details><summary>Wer zahlt für Schäden am Anzug?</summary><p>Beschädigungen, Schnitte etc. sind auf Kosten des Mieters zu bezahlen. Darum den Anzug vor der Rückgabe kontrollieren.</p></details>
+<details><summary>Was muss im Schianzug stecken?</summary><p>ÖSV-Karte, Saisonkarte und ein Namensschild vom Kind mit Telefonnummer. Das Kind muss sich auskennen und wissen, wo alles ist.</p></details>
+<details><summary>Darf mein Kind Zuckerl oder Süßes mitnehmen?</summary><p>Nein. Keine Zuckerl und keine Schleckereien im Anzug.</p></details>
+<details><summary>Müssen Eltern beim Training mithelfen?</summary><p>Wir haben Co-Trainer, die bei einer Gruppe hinterherfahren. Im Bedarfsfall sprechen die Trainer Eltern an, ob sie uns unterstützen können, gerade bei kleineren Kindern.</p></details>
+<details><summary>Kann mein Kind die Gruppe wechseln?</summary><p>Wechsel aufgrund des Könnens sind möglich. Die Einteilung machen die Trainer, nicht die Eltern.</p></details>
+<details><summary>Wofür brauche ich die ÖSV-Karte?</summary><p>Sie ist die Voraussetzung, um beim WSV mitzufahren und an Rennen teilzunehmen.</p></details>
+<details><summary>Was deckt die ÖSV-Versicherung ab?</summary><p>Bergungskosten bis 25.000 €, Behandlungskosten im Ausland bis 10.000 €, Rückholkosten aus dem Ausland unbegrenzt (über Tyrol Air Ambulance) und die Ski Austria HelpLine nach Unfällen. Vereinsunfälle bei Training, Rennen und Wettbewerben sind abgedeckt.</p></details>
+<details><summary>Sind Wegunfälle versichert?</summary><p>Ja, Wegunfälle, z. B. zum Training, sind mitversichert.</p></details>
+<details><summary>Mein Kind kommt später. Was tun?</summary><p>Ist eine Verspätung absehbar, bitte sofort melden. Ist ein Kind nach dem Treffpunkt noch nicht da, wird nach wenigen Minuten telefonisch Kontakt aufgenommen.</p></details>
+<details><summary>Was passiert bei einem Unfall?</summary><p>Die Trainer setzen die Rettungskette in Gang und übergeben an die Pistenrettung. Sie werden dafür vom Personal der Pistenrettung geschult. Gleichzeitig werden die Eltern verständigt.</p></details>
+<details><summary>Werden die Eltern auch bei kleinen Verletzungen informiert?</summary><p>Ja. Auch bei kleinen Verletzungen oder geringen Schmerzen ohne Pistenrettung werden die Eltern kontaktiert.</p></details>
+<details><summary>Kann mein Kind allein ins Tal fahren?</summary><p>Nein. Kinder dürfen nicht allein ins Tal fahren und müssen an einen Erziehungsberechtigten übergeben werden.</p></details>
+<details><summary>Wer holt mein Kind ab, und wie weiß es das?</summary><p>Das Kind soll wissen, wo es abgeholt wird und von wem. Oben stehen und nichts wissen ist ein absolutes No-Go und kostet viel Zeit. Eine Abholung am Berg ist unser Ziel.</p></details>
+<details><summary>Die Ausrüstung geht beim Training kaputt. Was passiert?</summary><p>Verhindert der Defekt die Weiterfahrt, werden die Eltern kontaktiert.</p></details>
+<details><summary>Mein Kind muss aufs WC oder friert. Was soll es tun?</summary><p>Es soll das dem Trainer sagen. Die Kinder dürfen ihre Bedürfnisse einbringen, und die Trainer gehen darauf ein.</p></details>
+<details><summary>Darf mein Kind das Handy mitnehmen?</summary><p>Ja, damit es im Notfall die Eltern kontaktieren kann. Bei uns gilt aber handyfreie Zone: Auf dem Lift und beim Einkehrschwung muss das Handy eingepackt bleiben.</p></details>
+<details><summary>Was machen die Co-Trainer?</summary><p>Die Co-Trainer fahren bei einer Gruppe hinterher.</p></details>
+<details><summary>Wer gestaltet das Training?</summary><p>Die Trainer gestalten das Training und die Übungen. Sie sind darin ausgebildet.</p></details>
+<details><summary>Wo finde ich Termine und News?</summary><p>Alle Termine und News stehen auf www.wsv.at.</p></details>
+<details><summary>Sollen wir zu Vereinsveranstaltungen kommen?</summary><p>Ja, Vereinsveranstaltungen sollen besucht werden, zum Beispiel Feuerbrennen, Gipfelmesse, JHV (Jahreshauptversammlung) usw. Die Termine findest du auf www.wsv.at.</p></details>
+<p id="nofaq" hidden style="color:var(--mute)">Nichts gefunden. Bitte in der Klubraum-Gruppe nachfragen.</p>
+</div>
+</div>
+</div>
+
+<script>
+(function(){
+var KEY="wsvkr-skitraining-v1.3";
+var RM=!!(window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches);
+function load(){try{return JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){return{}}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
+function buzz(n){try{if(navigator.vibrate)navigator.vibrate(n)}catch(e){}}
+function pad(n){return n<10?"0"+n:""+n}
+var st=load();
+var cards=[].slice.call(document.querySelectorAll(".card"));
+var dots=document.getElementById("dots"),next=document.getElementById("next"),back=document.getElementById("back"),stage=document.getElementById("stage");
+var hudn=document.getElementById("hudn"),hudt=document.getElementById("hudt"),hudo=document.getElementById("hudo");
+var cur=0,max=typeof st.max==="number"?st.max:0,shown=-1;
+if(typeof st.cur==="number"&&st.cur<=max)cur=st.cur;
+hudo.textContent="/ "+pad(cards.length);
+if(RM){[].forEach.call(document.querySelectorAll("animateMotion"),function(n){n.remove()})}
+
+var clockSVG='<svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="20" fill="var(--card)" stroke="var(--acc)" stroke-width="1.8"/><path d="M22 4.5v3M39.5 22h-3M22 39.5v-3M4.5 22h3" stroke="var(--mute)" stroke-width="1.6"/><line class="hh" x1="22" y1="22" x2="22" y2="12.5" stroke="var(--ink)" stroke-width="2.6" stroke-linecap="round"/><line class="mh" x1="22" y1="22" x2="22" y2="8" stroke="var(--acc)" stroke-width="2" stroke-linecap="round"/><circle cx="22" cy="22" r="2" fill="var(--acc)"/></svg>';
+cards.forEach(function(c){if(c.dataset.time)c.insertAdjacentHTML("afterbegin",'<div class="clock" aria-hidden="true">'+clockSVG+'</div>');
+  [].forEach.call(c.children,function(e,i){e.style.setProperty("--i",Math.min(i,9))})});
+function setClock(c){
+  var t=c.dataset.time;if(!t)return;
+  var p=t.split(":"),h=(+p[0])%12,m=+p[1],hh=c.querySelector(".hh"),mh=c.querySelector(".mh");
+  [hh,mh].forEach(function(e){e.style.transition="none";e.style.transform="rotate(-300deg)"});
+  void hh.getBoundingClientRect();
+  [hh,mh].forEach(function(e){e.style.transition=""});
+  hh.style.transform="rotate("+(h*30+m*.5)+"deg)";
+  mh.style.transform="rotate("+(m*6)+"deg)";
+}
+
+/* dezente Ripple-Welle statt Konfetti */
+document.addEventListener("pointerdown",function(e){
+  if(RM||!e.target.closest)return;
+  var el=e.target.closest(".chk,#next,#back,.letters button,.faqbtn,.linkbtn,.sheet header button,summary,.reset");
+  if(!el||el.disabled)return;
+  var r=el.getBoundingClientRect(),d=Math.max(r.width,r.height)*2.2,s=document.createElement("span");
+  s.className="rip";
+  s.style.cssText="width:"+d+"px;height:"+d+"px;left:"+(e.clientX-r.left-d/2)+"px;top:"+(e.clientY-r.top-d/2)+"px";
+  el.appendChild(s);setTimeout(function(){if(s.parentNode)s.parentNode.removeChild(s)},700);
+});
+
+var boxes=[].slice.call(document.querySelectorAll(".card .chk input"));
+boxes.forEach(function(b,i){
+  if(st.c&&st.c[i])b.checked=true;
+  b.addEventListener("change",function(){
+    st.c=boxes.map(function(x){return x.checked});save();
+    if(b.checked)buzz(8);
+    render(true);
+  });
+});
+
+cards.forEach(function(c,i){
+  var d=document.createElement("button");d.type="button";d.setAttribute("aria-label","Karte "+(i+1)+": "+c.dataset.title);
+  d.addEventListener("click",function(){go(i)});dots.appendChild(d);
+});
+function ready(i){var b=cards[i].querySelectorAll(".chk input");for(var k=0;k<b.length;k++)if(!b[k].checked)return false;return true}
+function go(i){if(i<0||i>=cards.length||i>max)return;var bk=i<cur;cur=i;render(false,bk)}
+function render(keep,bk){
+  var changed=cur!==shown;
+  cards.forEach(function(c,i){c.classList.toggle("on",i===cur);c.classList.toggle("back",!!bk)});
+  [].forEach.call(dots.children,function(d,i){d.className=i===cur?"cur":(i<=max?"seen":"");d.disabled=i>max});
+  back.disabled=cur===0;
+  var last=cur===cards.length-1,ok=ready(cur);
+  next.disabled=!ok&&!last;
+  next.style.display=last?"none":"";
+  next.textContent=cur===0?"Los geht’s":(ok?"Verstanden – weiter":"Bitte alles abhaken");
+  hudn.textContent=pad(cur+1);hudt.textContent=cards[cur].dataset.title;
+  if(!keep)stage.scrollTop=0;
+  if(changed){shown=cur;setClock(cards[cur])}
+  st.cur=cur;st.max=max;save();
+}
+next.addEventListener("click",function(){
+  if(next.disabled)return;
+  buzz(10);
+  if(cur+1>max)max=cur+1;go(cur+1);
+});
+back.addEventListener("click",function(){go(cur-1)});
+var sx=null;
+stage.addEventListener("touchstart",function(e){sx=e.touches[0].clientX},{passive:true});
+stage.addEventListener("touchend",function(e){if(sx===null)return;var dx=e.changedTouches[0].clientX-sx;sx=null;
+  if(dx>70)go(cur-1);else if(dx<-70&&ready(cur)&&cur<cards.length-1){if(cur+1>max)max=cur+1;go(cur+1)}},{passive:true});
+
+var wrap=document.getElementById("letters"),msg=document.getElementById("mymsg");
+"ABCDEFGHIJKL".split("").forEach(function(l){
+  var b=document.createElement("button");b.type="button";b.textContent=l;b.setAttribute("aria-pressed","false");
+  b.addEventListener("click",function(){st.l=st.l===l?null:l;save();showL();if(st.l)buzz(8)});
+  wrap.appendChild(b);
+});
+function showL(){[].forEach.call(wrap.children,function(b){b.setAttribute("aria-pressed",b.textContent===st.l?"true":"false")});msg.textContent=st.l?"Unsere Gruppe: "+st.l:""}
+
+var sheet=document.getElementById("sheet");
+function openF(){sheet.classList.add("on")}
+function closeF(){sheet.classList.remove("on")}
+document.getElementById("openFaq").addEventListener("click",openF);
+document.getElementById("faq2").addEventListener("click",openF);
+document.getElementById("closeFaq").addEventListener("click",closeF);
+document.addEventListener("keydown",function(e){if(e.key==="Escape")closeF()});
+var q=document.getElementById("q"),items=[].slice.call(document.querySelectorAll("#faqlist details"));
+q.addEventListener("input",function(){var t=q.value.trim().toLowerCase(),c=0;
+  items.forEach(function(d){var m=!t||d.textContent.toLowerCase().indexOf(t)>-1;d.hidden=!m;if(m)c++});
+  document.getElementById("nofaq").hidden=c>0});
+document.getElementById("reset").addEventListener("click",function(){
+  boxes.forEach(function(b){b.checked=false});st={};max=0;cur=0;shown=-1;showL();render(false)});
+showL();render(false);
+})();
+</script>
+</body>
+</html>
